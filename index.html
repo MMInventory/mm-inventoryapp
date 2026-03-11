@@ -253,17 +253,22 @@
       // ==========================================
       // CRITICAL: PASTE YOUR APPS SCRIPT URL HERE
       // ==========================================
-      const APPS_SCRIPT_URL = "YOUR_WEB_APP_URL_HERE";
+      const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz6GumWtCKBV9aCU_EnR1-EdFzl6FA-LOFJg_PE3e2GasP9efRKOyQ8IR7-XkzMiw72/exec";
 
-      async function apiCall(actionName, dataObj) {
+     async function apiCall(actionName, dataObj) {
         try {
           let response = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
+            redirect: "follow", // CRITICAL: Tells the browser to follow Google's security redirect
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8" // Bypasses strict CORS preflight blocks
+            },
             body: JSON.stringify({ action: actionName, data: dataObj })
           });
           return await response.json();
         } catch (error) {
-          return { error: "Network Error: Could not reach database." };
+          console.error(error);
+          return { error: "Network Error: Could not reach database. Check your Web App URL." };
         }
       }
 
@@ -321,18 +326,26 @@
          html5QrCode.start(
              { facingMode: "environment" },
              {
-                 fps: 10,
-                 // Makes a rectangular box optimized for standard 1D barcodes
+                 fps: 15, // Faster scan rate
                  qrbox: function(viewfinderWidth, viewfinderHeight) {
-                     return { width: viewfinderWidth * 0.8, height: viewfinderHeight * 0.4 };
-                 }
+                     // Wider rectangle optimized for 1D barcodes
+                     return { width: viewfinderWidth * 0.9, height: viewfinderHeight * 0.35 };
+                 },
+                 // Explicitly hunt for standard inventory barcodes
+                 formatsToSupport: [
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.QR_CODE
+                 ]
              },
              function(decodedText, decodedResult) {
-                 // Success!
+                 // Scan Successful!
                  onScan(decodedText);
              },
              function(errorMessage) {
-                 // Background errors ignored (happens every frame a code isn't seen)
+                 // Ignore background errors while it hunts
              }
          ).catch(function(err) {
              showModal("Camera Error", "Could not start camera. Make sure permissions are granted.", "red");
