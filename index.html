@@ -6,7 +6,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
     <style>
       body { background-color: #212529; color: #e0e0e0; font-family: 'Montserrat', sans-serif; padding-bottom: 80px; }
@@ -67,6 +68,10 @@
       
       .loader { border: 4px solid #f3f3f3; border-top: 4px solid #dcb043; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      
+      /* html5-qrcode overrides for dark mode */
+      #reader { background: #000; border-radius: 8px; overflow: hidden; border: none !important; }
+      #reader video { object-fit: cover; }
     </style>
   </head>
   <body>
@@ -81,8 +86,7 @@
       </ul>
 
       <div id="scanner-wrapper" class="hidden mb-3 p-3 border border-secondary rounded" style="background:#1a1d20;">
-        <video id="qr-video" style="width: 100%; border-radius: 8px; background: #000;" playsinline></video>
-        <canvas id="qr-canvas" class="hidden"></canvas>
+        <div id="reader" width="100%"></div>
         <div class="text-center mb-3 mt-2 text-white fw-bold">Point camera at barcode</div>
         <button class="btn btn-outline-danger w-100" onclick="stopScanner()">Close Camera</button>
       </div>
@@ -244,20 +248,13 @@
     </div>
 
     <div id="modal-overlay" class="hidden modal-overlay"><div class="modal-box" id="modal-box-content"></div></div>
-    <div id="photo-modal" class="hidden modal-overlay" onclick="document.getElementById('photo-modal').classList.add('hidden')">
-       <div style="position:relative; max-width:90%; max-height:80%;">
-          <img id="popup-img" src="" style="width:100%; border-radius:8px; border:2px solid white;">
-          <div class="text-center text-white mt-2 small">Tap anywhere to close</div>
-       </div>
-    </div>
 
     <script>
       // ==========================================
       // CRITICAL: PASTE YOUR APPS SCRIPT URL HERE
       // ==========================================
-      const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz6GumWtCKBV9aCU_EnR1-EdFzl6FA-LOFJg_PE3e2GasP9efRKOyQ8IR7-XkzMiw72/exec";
+      const APPS_SCRIPT_URL = "YOUR_WEB_APP_URL_HERE";
 
-      // The magic bridge between GitHub and Google Apps Script
       async function apiCall(actionName, dataObj) {
         try {
           let response = await fetch(APPS_SCRIPT_URL, {
@@ -270,17 +267,11 @@
         }
       }
 
-      var scanner = null;
       var activeInput = null;
       var currentSingle = null;
       var contractItems = [];
       var batchIds = [];
-      
-      var video = document.getElementById("qr-video");
-      var canvasElement = document.getElementById("qr-canvas");
-      var canvas = canvasElement.getContext("2d");
-      var scanning = false;
-      var scanStream = null;
+      var html5QrCode; // New scanner engine variable
 
       function showLoading() {
          var box = document.getElementById('modal-box-content');
@@ -317,43 +308,49 @@
       function clearField(id) { var el = document.getElementById(id); if(el) { el.value = ""; el.focus(); } }
       function toggleCollapse(id) { var el = document.getElementById(id); if(el.classList.contains('hidden')) el.classList.remove('hidden'); else el.classList.add('hidden'); }
 
-      // --- jsQR LIVE SCANNER LOGIC ---
+      // --- UPGRADED HTML5-QRCODE SCANNER LOGIC ---
       function startScan(inputId) {
          activeInput = inputId;
          document.getElementById('scanner-wrapper').classList.remove('hidden');
          window.scrollTo({ top: 0, behavior: 'smooth' });
          
-         scanning = true;
-         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-            scanStream = stream;
-            video.srcObject = stream;
-            video.setAttribute("playsinline", true);
-            video.play();
-            requestAnimationFrame(tick);
-         }).catch(function(err) {
-            showModal("Camera Error", "Could not access camera. Make sure permissions are granted.", "red");
-            stopScanner();
+         if (!html5QrCode) {
+             html5QrCode = new Html5Qrcode("reader");
+         }
+         
+         html5QrCode.start(
+             { facingMode: "environment" },
+             {
+                 fps: 10,
+                 // Makes a rectangular box optimized for standard 1D barcodes
+                 qrbox: function(viewfinderWidth, viewfinderHeight) {
+                     return { width: viewfinderWidth * 0.8, height: viewfinderHeight * 0.4 };
+                 }
+             },
+             function(decodedText, decodedResult) {
+                 // Success!
+                 onScan(decodedText);
+             },
+             function(errorMessage) {
+                 // Background errors ignored (happens every frame a code isn't seen)
+             }
+         ).catch(function(err) {
+             showModal("Camera Error", "Could not start camera. Make sure permissions are granted.", "red");
+             document.getElementById('scanner-wrapper').classList.add('hidden');
          });
       }
 
-      function tick() {
-         if (!scanning) return;
-         if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvasElement.height = video.videoHeight;
-            canvasElement.width = video.videoWidth;
-            canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-            var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-            
-            var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-            if (code) { onScan(code.data); return; }
-         }
-         requestAnimationFrame(tick);
-      }
-
       function stopScanner() {
-         scanning = false;
-         if (scanStream) { scanStream.getTracks().forEach(function(track) { track.stop(); }); scanStream = null; }
-         document.getElementById('scanner-wrapper').classList.add('hidden');
+         if (html5QrCode && html5QrCode.isScanning) {
+             html5QrCode.stop().then(() => {
+                 document.getElementById('scanner-wrapper').classList.add('hidden');
+             }).catch(err => {
+                 console.log(err);
+                 document.getElementById('scanner-wrapper').classList.add('hidden');
+             });
+         } else {
+             document.getElementById('scanner-wrapper').classList.add('hidden');
+         }
       }
 
       function onScan(txt) {
@@ -388,7 +385,6 @@
             document.getElementById('val-date').innerText = data.auctionDate; document.getElementById('val-dims').innerText = data.dimensions;
             document.getElementById('val-notes').innerText = data.notes;
             
-            // Logic to populate fields (Pending vs Master)
             var locInput = document.getElementById('edit-loc');
             if(data.source === "MASTER") {
                document.getElementById('badge-source').innerText = "MASTER LOG"; document.getElementById('badge-source').className = "badge-master";
