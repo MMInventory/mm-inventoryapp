@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
+    <style>
+      body { background-color: #212529; color: #e0e0e0; font-family: 'Montserrat', sans-serif; padding-bottom: 80px; }
+      .app-container { max-width: 600px; margin: 0 auto; padding: 15px; }
+      
+      .nav-pills { display: flex; gap: 5px; margin-bottom: 20px; }
+      .nav-item { flex-grow: 1; }
+      .nav-pills .nav-item:first-child { flex: 0 0 44%; } 
+      
+      .nav-pills .nav-link { 
+        color: #adb5bd; border: 1px solid #495057; border-radius: 6px; text-align: center;
+        width: 100%; padding: 10px 2px; font-size: 0.85rem; white-space: nowrap; 
+        overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+      }
+      .nav-pills .nav-link.active { background-color: #dcb043; color: #000; font-weight: bold; border-color: #dcb043; }
+      
+      .logo-styled { background-color: #ffffff; border: 1px solid #adb5bd; border-radius: 8px; padding: 5px; height: 50px; width: auto; display: block; margin: 0 auto 15px auto; }
+      .info-box { background-color: #343a40; border: 1px solid #495057; border-radius: 5px; padding: 10px; margin-bottom: 10px; }
+      .info-label { font-size: 0.75rem; color: #adb5bd; text-transform: uppercase; letter-spacing: 1px; }
+      .info-value { font-size: 1rem; font-weight: 600; }
+      
+      .form-control-dark, .form-select-dark { 
+        background-color: #1a1d20 !important; border: 1px solid #495057 !important; 
+        color: #ffffff !important; font-size: 1.1rem !important; padding: 12px !important;
+      }
+      .form-control-dark:focus, .form-select-dark:focus { border-color: #dcb043 !important; box-shadow: none; outline: none; }
+      .form-control-dark:disabled { background-color: #111315 !important; color: #6c757d !important; opacity: 0.8; cursor: not-allowed; }
+      .form-control-dark::placeholder { color: #888 !important; opacity: 1; font-style: normal; }
+      
+      .btn-gold { background-color: #dcb043; color: #000; font-weight: bold; border: none; text-transform: uppercase; letter-spacing: 0.5px; width: 100%; padding: 15px; border-radius: 6px; }
+      .btn-gold:hover { background-color: #c49b38; color: #000; }
+      .btn-gold:disabled { background-color: #6c757d; opacity: 0.5; }
+      
+      .badge-master { background-color: #0d6efd; color: white; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; display: inline-block; margin-bottom: 10px; }
+      .badge-pending { background-color: #dcb043; color: black; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; display: inline-block; margin-bottom: 10px; }
+      
+      #img-main { background-color: #000; border-radius: 8px; margin-bottom: 15px; display: block; width: auto; max-width: 100%; max-height: 250px; object-fit: contain; margin-left: auto; margin-right: auto; }
+
+      .toggle-container { display: flex; justify-content: center; margin-bottom: 15px; }
+      .toggle-btn { padding: 8px 20px; border: 1px solid #adb5bd; background: transparent; color: #adb5bd; cursor: pointer; flex: 1; }
+      .toggle-btn:first-child { border-radius: 6px 0 0 6px; }
+      .toggle-btn:last-child { border-radius: 0 6px 6px 0; }
+      .toggle-btn.active { background: #dcb043; color: #000; border-color: #dcb043; font-weight: bold; }
+
+      .hidden { display: none !important; }
+      
+      #batch-list, #list-hist, #contract-list, #batch-current-list { max-height: 55vh; overflow-y: auto; background: #2b3035; border: 1px solid #495057; border-radius: 5px; padding: 5px; }
+      .hist-item { padding: 10px; border-bottom: 1px solid #495057; }
+      .batch-item { padding: 8px 10px; border-bottom: 1px solid #495057; display: flex; justify-content: space-between; align-items:center; }
+
+      .contract-card { background: #1a1d20; border: 1px solid #495057; border-radius: 8px; margin-bottom: 10px; padding: 10px; }
+      .contract-card.status-red { border-left: 5px solid #dc3545; }
+      .contract-card.status-green { border-left: 5px solid #198754; }
+      .badge-missing { display: inline-block; background: #dc3545; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-right: 4px; margin-top: 4px; text-transform: uppercase; }
+
+      #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+      .modal-box { background: #2b3035; border: 2px solid #fff; padding: 25px; border-radius: 12px; width: 85%; max-width: 400px; text-align: center; }
+      
+      .loader { border: 4px solid #f3f3f3; border-top: 4px solid #dcb043; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body>
+
+    <div class="app-container">
+      <img src="https://images.squarespace-cdn.com/content/v1/5d2cd22ad371ab000160912d/1563290301359-8SXGUKZ7CVXURMSR4K0R/Revised+Logo+-+Miller+and+Miller+-+2019.png" class="logo-styled">
+
+      <ul class="nav nav-pills nav-fill">
+        <li class="nav-item"><a class="nav-link active" id="tab-lookup" onclick="switchMainTab('lookup')">Lookup</a></li>
+        <li class="nav-item"><a class="nav-link" id="tab-quick" onclick="switchMainTab('quick')">Quick Move</a></li>
+        <li class="nav-item"><a class="nav-link" id="tab-batch" onclick="switchMainTab('batch')">Batch Move</a></li>
+      </ul>
+
+      <div id="scanner-wrapper" class="hidden mb-3 p-3 border border-secondary rounded" style="background:#1a1d20;">
+        <video id="qr-video" style="width: 100%; border-radius: 8px; background: #000;" playsinline></video>
+        <canvas id="qr-canvas" class="hidden"></canvas>
+        <div class="text-center mb-3 mt-2 text-white fw-bold">Point camera at barcode</div>
+        <button class="btn btn-outline-danger w-100" onclick="stopScanner()">Close Camera</button>
+      </div>
+
+      <div id="view-lookup">
+         <div class="toggle-container">
+           <button class="toggle-btn active" id="mode-single" onclick="switchLookupMode('single')">Single Item</button>
+           <button class="toggle-btn" id="mode-contract" onclick="switchLookupMode('contract')">Contract</button>
+         </div>
+
+         <div id="ui-single">
+            <div class="d-flex justify-content-end mb-2"><button class="btn btn-sm btn-outline-light" onclick="resetLookup()">Reset ↻</button></div>
+            
+            <div class="input-group mb-3">
+               <input type="text" inputmode="numeric" pattern="[0-9]*" id="inp-lookup" class="form-control form-control-dark" placeholder="Enter Inventory #">
+               <button class="btn btn-outline-danger" onclick="clearField('inp-lookup')">✕</button>
+               <button class="btn btn-outline-secondary" onclick="startScan('inp-lookup')">📷</button>
+               <button class="btn btn-primary" onclick="runSingleSearch()">Search</button>
+            </div>
+
+            <div id="res-single" class="hidden">
+               <div class="text-center mb-2"><span id="badge-source" class="badge-master">Loading...</span></div>
+                
+               <div class="d-flex gap-2 mb-3">
+                  <button class="btn btn-sm btn-gold flex-grow-1 fw-bold" id="tab-link-inv" onclick="showSub('inv')">Inventory</button>
+                  <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-ship" onclick="showSub('ship')">Shipping</button>
+                  <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-hist" onclick="showSub('hist')">History</button>
+               </div>
+
+               <div id="sub-inv">
+                  <img id="img-main" src="">
+                  <div class="info-box"><div class="info-label">Inventory #</div><div class="info-value" id="val-id"></div></div>
+                  <div class="info-box"><div class="info-label">Item Title</div><div class="info-value" id="val-title"></div></div>
+                  <div class="info-box"><div class="info-label">Auction Date</div><div class="info-value" id="val-date"></div></div>
+                  
+                  <div class="p-3 border border-secondary rounded mb-3" style="background:#2b3035">
+                     <h6 id="edit-header" class="text-primary mb-3">Edit Data</h6>
+                     <div id="missing-alert" class="alert alert-danger p-2 small hidden"></div>
+                      
+                     <label class="info-label">Location</label>
+                     <div class="input-group mb-2">
+                        <input type="text" id="edit-loc" class="form-control form-control-dark">
+                        <button class="btn btn-outline-danger" onclick="clearField('edit-loc')">✕</button>
+                        <button class="btn btn-outline-secondary" onclick="startScan('edit-loc')">📷</button>
+                     </div>
+                      
+                     <div id="grp-pending">
+                        <label class="info-label">Freight Required</label>
+                        <select id="edit-freight" class="form-select form-select-dark mb-2"><option value="">Select...</option><option value="Yes">Yes</option><option value="No">No</option></select>
+                        <label class="info-label">Arrival Status</label>
+                        <select id="edit-arrival" class="form-select form-select-dark mb-2"><option value="">Select...</option><option value="At Miller">At Miller</option><option value="In Transit">In Transit</option><option value="At Webster">At Webster</option><option value="At Grading">At Grading</option></select>
+                        <label class="info-label">Check-In Initials</label>
+                        <div class="input-group mb-3">
+                           <input type="text" id="edit-initials" class="form-control form-control-dark" placeholder="Locked" disabled oninput="this.value=this.value.toUpperCase()">
+                           <button class="btn btn-outline-danger" onclick="clearField('edit-initials')">✕</button>
+                        </div>
+                     </div>
+                      
+                     <div id="grp-master" class="hidden">
+                        <label class="info-label">Notes</label>
+                        <textarea id="edit-notes" class="form-control form-control-dark mb-3" rows="2"></textarea>
+                     </div>
+
+                     <button class="btn btn-success w-100" onclick="saveSingle()">Save / Check In</button>
+                  </div>
+               </div>
+
+               <div id="sub-ship" class="hidden">
+                  <div class="info-box"><div class="info-label">Dimensions</div><div class="info-value" id="val-dims"></div></div>
+                  <div class="info-box"><div class="info-label">Notes</div><div class="info-value" id="val-notes"></div></div>
+               </div>
+
+               <div id="sub-hist" class="hidden"><div id="list-hist"></div></div>
+               <hr class="border-secondary mt-4"><button class="btn btn-outline-light w-100" onclick="resetLookup()">Scan Next Item</button>
+            </div>
+         </div>
+
+         <div id="ui-contract" class="hidden">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+               <h6 class="text-gold m-0" id="contract-title-header">Contract Lookup</h6>
+               <button class="btn btn-sm btn-outline-light" onclick="resetContract()">Reset ↻</button>
+            </div>
+            <div class="input-group mb-3">
+               <input type="text" inputmode="numeric" pattern="[0-9]*" id="inp-contract" class="form-control form-control-dark" placeholder="Scan ANY Item ID">
+               <button class="btn btn-outline-danger" onclick="clearField('inp-contract')">✕</button>
+               <button class="btn btn-outline-secondary" onclick="startScan('inp-contract')">📷</button>
+               <button class="btn btn-primary" onclick="runContractSearch()">Search</button>
+            </div>
+            
+            <div id="res-contract" class="hidden">
+               <div id="contract-list"></div>
+               <hr class="border-secondary">
+               <label class="info-label">Initials (Locked until all Pending are Green)</label>
+               <div class="input-group mb-3">
+                  <input type="text" id="inp-cont-init" class="form-control form-control-dark" placeholder="Locked" disabled oninput="this.value=this.value.toUpperCase(); checkContBtn();">
+                  <button class="btn btn-outline-danger" onclick="clearField('inp-cont-init')">✕</button>
+               </div>
+               <button id="btn-cont-submit" class="btn btn-success w-100" disabled onclick="saveContract()">Check In Valid Items</button>
+            </div>
+         </div>
+      </div>
+
+      <div id="view-quick" class="hidden">
+         <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="text-gold m-0">Quick Move</h5><button class="btn btn-sm btn-outline-light" onclick="resetQuick()">Reset ↻</button></div>
+         <div class="mb-3">
+            <label class="small text-muted">1. Item Barcode</label>
+            <div class="input-group">
+               <input type="text" inputmode="numeric" pattern="[0-9]*" id="qm-item" class="form-control form-control-dark" placeholder="Scan Item">
+               <button class="btn btn-outline-danger" onclick="clearField('qm-item')">✕</button>
+               <button class="btn btn-outline-secondary" onclick="startScan('qm-item')">📷</button>
+            </div>
+         </div>
+         <div class="mb-4">
+            <label class="small text-muted">2. New Location Barcode</label>
+            <div class="input-group">
+               <input type="text" id="qm-loc" class="form-control form-control-dark" placeholder="Location">
+               <button class="btn btn-outline-danger" onclick="clearField('qm-loc')">✕</button>
+               <input type="text" inputmode="numeric" pattern="[0-9]*" id="qm-shelf" class="form-control form-control-dark" placeholder="Shelf" style="max-width:80px;">
+               <button class="btn btn-outline-danger" onclick="clearField('qm-shelf')">✕</button>
+               <button class="btn btn-outline-secondary" onclick="startScan('qm-loc')">📷</button>
+            </div>
+         </div>
+         <button class="btn-gold" onclick="runQuickMove()">CONFIRM MOVE</button>
+         <div id="qm-status" class="text-center mt-3 text-info fw-bold"></div>
+      </div>
+
+      <div id="view-batch" class="hidden">
+         <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="text-gold m-0">Batch Move</h5><button class="btn btn-sm btn-outline-light" onclick="resetBatch()">Reset ↻</button></div>
+         <div class="mb-3">
+            <label class="small text-muted">Target Location</label>
+            <div class="input-group">
+               <input type="text" id="bm-loc" class="form-control form-control-dark" placeholder="Scan Location First">
+               <button class="btn btn-outline-danger" onclick="clearField('bm-loc')">✕</button>
+               <input type="text" inputmode="numeric" pattern="[0-9]*" id="bm-shelf" class="form-control form-control-dark" placeholder="Shelf" style="max-width:80px;">
+               <button class="btn btn-outline-danger" onclick="clearField('bm-shelf')">✕</button>
+               <button class="btn btn-outline-light" onclick="searchBatchLocation()">Search</button>
+               <button class="btn btn-outline-secondary" onclick="startScan('bm-loc')">📷</button>
+            </div>
+         </div>
+         
+         <div id="batch-actions" class="hidden">
+            <h4 id="batch-loc-header" class="text-white fw-bold mb-2"></h4>
+            
+            <button class="btn btn-sm btn-outline-secondary w-100 mb-3" type="button" onclick="toggleCollapse('batch-current-list')">View Items Already Here (Click to Expand)</button>
+            <div id="batch-current-list" class="hidden mb-3"></div>
+
+            <div class="input-group mb-2">
+               <input type="text" inputmode="numeric" pattern="[0-9]*" id="bm-item" class="form-control form-control-dark" placeholder="Scan Item to Add">
+               <button class="btn btn-outline-danger" onclick="clearField('bm-item')">✕</button>
+               <button class="btn btn-outline-secondary" onclick="startScan('bm-item')">📷</button>
+               <button class="btn btn-primary" onclick="addBatch()">Add</button>
+            </div>
+            <label class="small text-muted text-uppercase fw-bold text-primary">Queue to Add:</label>
+            <div id="bm-list" class="mb-3"></div>
+            <button class="btn-gold mb-3" onclick="runBatchSubmit()">SUBMIT BATCH</button>
+            <button class="btn btn-outline-danger w-100" onclick="runBatchClear()">RESET LOCATION (CLEAR)</button>
+         </div>
+      </div>
+    </div>
+
+    <div id="modal-overlay" class="hidden modal-overlay"><div class="modal-box" id="modal-box-content"></div></div>
+    <div id="photo-modal" class="hidden modal-overlay" onclick="document.getElementById('photo-modal').classList.add('hidden')">
+       <div style="position:relative; max-width:90%; max-height:80%;">
+          <img id="popup-img" src="" style="width:100%; border-radius:8px; border:2px solid white;">
+          <div class="text-center text-white mt-2 small">Tap anywhere to close</div>
+       </div>
+    </div>
+
+    <script>
+      // ==========================================
+      // CRITICAL: PASTE YOUR APPS SCRIPT URL HERE
+      // ==========================================
+      const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz6GumWtCKBV9aCU_EnR1-EdFzl6FA-LOFJg_PE3e2GasP9efRKOyQ8IR7-XkzMiw72/exec";
+
+      // The magic bridge between GitHub and Google Apps Script
+      async function apiCall(actionName, dataObj) {
+        try {
+          let response = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: actionName, data: dataObj })
+          });
+          return await response.json();
+        } catch (error) {
+          return { error: "Network Error: Could not reach database." };
+        }
+      }
+
+      var scanner = null;
+      var activeInput = null;
+      var currentSingle = null;
+      var contractItems = [];
+      var batchIds = [];
+      
+      var video = document.getElementById("qr-video");
+      var canvasElement = document.getElementById("qr-canvas");
+      var canvas = canvasElement.getContext("2d");
+      var scanning = false;
+      var scanStream = null;
+
+      function showLoading() {
+         var box = document.getElementById('modal-box-content');
+         box.innerHTML = `<div class="loader"></div><h4 class="mt-3">Loading...</h4>`;
+         box.style.borderColor = "#dcb043";
+         document.getElementById('modal-overlay').classList.remove('hidden');
+      }
+      function hideLoading() { document.getElementById('modal-overlay').classList.add('hidden'); }
+
+      function switchMainTab(tabId) {
+         stopScanner();
+         ['lookup','quick','batch'].forEach(t => { document.getElementById('view-'+t).classList.add('hidden'); document.getElementById('tab-'+t).classList.remove('active'); });
+         document.getElementById('view-'+tabId).classList.remove('hidden'); document.getElementById('tab-'+tabId).classList.add('active');
+      }
+
+      function switchLookupMode(mode) {
+         stopScanner();
+         if(mode === 'single') {
+            document.getElementById('ui-single').classList.remove('hidden'); document.getElementById('ui-contract').classList.add('hidden');
+            document.getElementById('mode-single').classList.add('active'); document.getElementById('mode-contract').classList.remove('active');
+         } else {
+            document.getElementById('ui-single').classList.add('hidden'); document.getElementById('ui-contract').classList.remove('hidden');
+            document.getElementById('mode-single').classList.remove('active'); document.getElementById('mode-contract').classList.add('active');
+         }
+      }
+
+      function showSub(sub) {
+         ['inv','ship','hist'].forEach(s => document.getElementById('sub-'+s).classList.add('hidden'));
+         document.getElementById('sub-'+sub).classList.remove('hidden');
+         ['inv','ship','hist'].forEach(s => { document.getElementById('tab-link-'+s).className = 'btn btn-sm btn-outline-light flex-grow-1 fw-bold'; });
+         document.getElementById('tab-link-'+sub).className = 'btn btn-sm btn-gold flex-grow-1 fw-bold';
+      }
+
+      function clearField(id) { var el = document.getElementById(id); if(el) { el.value = ""; el.focus(); } }
+      function toggleCollapse(id) { var el = document.getElementById(id); if(el.classList.contains('hidden')) el.classList.remove('hidden'); else el.classList.add('hidden'); }
+
+      // --- jsQR LIVE SCANNER LOGIC ---
+      function startScan(inputId) {
+         activeInput = inputId;
+         document.getElementById('scanner-wrapper').classList.remove('hidden');
+         window.scrollTo({ top: 0, behavior: 'smooth' });
+         
+         scanning = true;
+         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+            scanStream = stream;
+            video.srcObject = stream;
+            video.setAttribute("playsinline", true);
+            video.play();
+            requestAnimationFrame(tick);
+         }).catch(function(err) {
+            showModal("Camera Error", "Could not access camera. Make sure permissions are granted.", "red");
+            stopScanner();
+         });
+      }
+
+      function tick() {
+         if (!scanning) return;
+         if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvasElement.height = video.videoHeight;
+            canvasElement.width = video.videoWidth;
+            canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+            var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+            
+            var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+            if (code) { onScan(code.data); return; }
+         }
+         requestAnimationFrame(tick);
+      }
+
+      function stopScanner() {
+         scanning = false;
+         if (scanStream) { scanStream.getTracks().forEach(function(track) { track.stop(); }); scanStream = null; }
+         document.getElementById('scanner-wrapper').classList.add('hidden');
+      }
+
+      function onScan(txt) {
+         stopScanner();
+         if(activeInput) {
+            var el = document.getElementById(activeInput);
+            if(el) el.value = txt;
+            if(activeInput === 'inp-lookup') runSingleSearch();
+            if(activeInput === 'inp-contract') runContractSearch();
+            if(activeInput === 'qm-item') document.getElementById('qm-loc').focus();
+            if(activeInput === 'bm-item') addBatch();
+            if(activeInput.startsWith('cont-loc-')) { var idx = activeInput.split('-')[2]; updCont(idx, 'location', txt); }
+         }
+      }
+
+      // --- 1. SINGLE ITEM LOGIC ---
+      function runSingleSearch() {
+         var id = document.getElementById('inp-lookup').value;
+         if(!id) return;
+         document.getElementById('res-single').classList.add('hidden');
+         showLoading();
+         
+         apiCall("getItemData", { id: id }).then(function(data) {
+            hideLoading();
+            if(data.error) return showModal("Not Found", data.error, "red");
+            currentSingle = data;
+            document.getElementById('res-single').classList.remove('hidden');
+            
+            var fallback = "https://drive.google.com/thumbnail?id=1QKFdyVCLY4vFeqyhJSmmv_mqa__Ydex1&sz=w1000";
+            document.getElementById('img-main').src = data.image || fallback;
+            document.getElementById('val-id').innerText = data.id; document.getElementById('val-title').innerText = data.title;
+            document.getElementById('val-date').innerText = data.auctionDate; document.getElementById('val-dims').innerText = data.dimensions;
+            document.getElementById('val-notes').innerText = data.notes;
+            
+            // Logic to populate fields (Pending vs Master)
+            var locInput = document.getElementById('edit-loc');
+            if(data.source === "MASTER") {
+               document.getElementById('badge-source').innerText = "MASTER LOG"; document.getElementById('badge-source').className = "badge-master";
+               document.getElementById('edit-header').innerText = "Master Log Data"; document.getElementById('edit-header').className = "text-primary mb-3";
+               document.getElementById('grp-pending').classList.add('hidden'); document.getElementById('grp-master').classList.remove('hidden');
+               document.getElementById('missing-alert').classList.add('hidden');
+               locInput.value = data.location; document.getElementById('edit-notes').value = data.notes;
+            } else {
+               document.getElementById('badge-source').innerText = "PENDING LOG"; document.getElementById('badge-source').className = "badge-pending";
+               document.getElementById('edit-header').innerText = "Check In (Pending)"; document.getElementById('edit-header').className = "text-warning mb-3";
+               document.getElementById('grp-pending').classList.remove('hidden'); document.getElementById('grp-master').classList.add('hidden');
+                
+               locInput.value = data.location; document.getElementById('edit-freight').value = data.freight;
+               document.getElementById('edit-arrival').value = data.arrival; document.getElementById('edit-initials').value = data.initials;
+                
+               if(data.missingHeaders && data.missingHeaders.length > 0) {
+                  document.getElementById('missing-alert').innerText = "Missing Info:\n• " + data.missingHeaders.join("\n• ");
+                  document.getElementById('missing-alert').classList.remove('hidden');
+                  document.getElementById('edit-initials').disabled = true; document.getElementById('edit-initials').placeholder = "Locked";
+               } else {
+                  document.getElementById('missing-alert').classList.add('hidden');
+                  document.getElementById('edit-initials').disabled = false; document.getElementById('edit-initials').placeholder = "Required";
+               }
+            }
+            
+            var hList = document.getElementById('list-hist'); hList.innerHTML = "";
+            if(data.history && data.history.length > 0) {
+               data.history.forEach(function(h){ hList.innerHTML += "<div class='hist-item'><span class='hist-date'>"+h.date+"</span><br><span class='text-light'>"+h.action+":</span> <span class='text-muted'>"+h.oldLoc+" > "+h.newLoc+" ("+h.user+")</span></div>"; });
+            } else { hList.innerHTML = "<div class='p-3 text-center text-muted'>No item history found.</div>"; }
+         });
+      }
+
+      function saveSingle() {
+         if(!currentSingle) return;
+         showLoading();
+         if(currentSingle.source === "MASTER") {
+            var loc = document.getElementById('edit-loc').value; var note = document.getElementById('edit-notes').value;
+            apiCall("updateMasterData", { id: currentSingle.id, loc: loc, note: note }).then(function(res){ 
+                hideLoading(); 
+                if(res.error) return showModal("Error", res.error, "red");
+                showModal("Saved", "Master Data Updated", "green"); 
+            });
+         } else {
+            var loc = document.getElementById('edit-loc').value; var frt = document.getElementById('edit-freight').value;
+            var arr = document.getElementById('edit-arrival').value; var ini = document.getElementById('edit-initials').value;
+            if(!ini) { hideLoading(); return showModal("Error", "Initials Required", "red"); }
+            
+            apiCall("updatePendingData", { id: currentSingle.id, loc: loc, frt: frt, arr: arr, ini: ini }).then(function(res){
+               hideLoading();
+               if(res.success) { showModal("Checked In!", "Item updated successfully.", "green"); resetLookup(); } 
+               else { showModal("Error", res.error || res.message, "red"); }
+            });
+         }
+      }
+      function resetLookup() { document.getElementById('res-single').classList.add('hidden'); document.getElementById('inp-lookup').value = ""; }
+
+      // --- 2. CONTRACT LOGIC ---
+      function runContractSearch() {
+         var id = document.getElementById('inp-contract').value;
+         if(!id) return;
+         document.getElementById('res-contract').classList.remove('hidden');
+         document.getElementById('contract-title-header').innerText = "Searching...";
+         document.getElementById('contract-list').innerHTML = "";
+         showLoading();
+         
+         apiCall("getContractItems", { id: id }).then(function(res) {
+            hideLoading();
+            if(res.error) { document.getElementById('contract-title-header').innerText = res.error; return; }
+            contractItems = res.items;
+            document.getElementById('contract-title-header').innerText = "Contract: " + res.schedCode;
+            renderContract();
+         });
+      }
+
+      function resetContract() { document.getElementById('res-contract').classList.add('hidden'); document.getElementById('inp-contract').value = ""; document.getElementById('contract-title-header').innerText = "Contract Lookup"; }
+
+      function renderContract() {
+         var div = document.getElementById('contract-list'); div.innerHTML = "";
+         var allValid = true;
+         
+         contractItems.forEach(function(item, idx){
+            var isMaster = (item.source === "MASTER"); var isOk = (item.missing.length === 0);
+            if(!isOk && !isMaster) allValid = false; 
+            
+            var border = (isOk || isMaster) ? "status-green" : "status-red";
+            var fallback = "https://drive.google.com/thumbnail?id=1QKFdyVCLY4vFeqyhJSmmv_mqa__Ydex1&sz=w1000";
+            var img = item.image || fallback;
+            
+            var html = "<div class='contract-card "+border+"'><div style='display:flex; justify-content:space-between; align-items:flex-start;'><div><strong>"+item.id+"</strong><br><span style='font-size:0.85rem;color:#adb5bd;'>"+item.title+"</span></div><div><button class='btn btn-sm btn-outline-light' onclick='toggleInlineImg(\"cont-img-"+idx+"\")'>📷</button></div></div><img id='cont-img-"+idx+"' src='"+img+"' class='hidden' style='width:100%; border-radius:8px; margin-top:10px; max-height:200px; object-fit:contain;'>";
+                
+            if(isMaster) { html += "<div class='mt-2 fw-bold text-success small'>✔ Checked In (Master Log)</div><div class='mt-1 small text-muted'>Location: "+(item.location||"None")+"</div></div>";
+            } else {
+               if(!isOk) html += "<div class='mt-2'><span class='badge-missing'>MISSING: "+item.missing.join(', ')+"</span></div>";
+               html += "<div class='mb-2 mt-2 input-group input-group-sm'><input type='text' id='cont-loc-"+idx+"' class='form-control form-control-dark' value='"+(item.location||"")+"' placeholder='Loc' onchange='updCont("+idx+",\"location\",this.value)'><button class='btn btn-outline-danger' onclick='clearField(\"cont-loc-"+idx+"\"); updCont("+idx+",\"location\",\"\")'>✕</button><button class='btn btn-outline-secondary' onclick='startScan(\"cont-loc-"+idx+"\")'>📷</button></div><div class='row g-1'><div class='col-6'><select class='form-select form-select-sm form-select-dark' onchange='updCont("+idx+",\"freight\",this.value)'><option value=''>Frt</option><option value='Yes' "+(item.freight=='Yes'?'selected':'')+">Yes</option><option value='No' "+(item.freight=='No'?'selected':'')+">No</option></select></div><div class='col-6'><select class='form-select form-select-sm form-select-dark' onchange='updCont("+idx+",\"arrival\",this.value)'><option value=''>Arr</option><option value='At Miller' "+(item.arrival=='At Miller'?'selected':'')+">Miller</option><option value='In Transit' "+(item.arrival=='In Transit'?'selected':'')+">Transit</option><option value='At Webster' "+(item.arrival=='At Webster'?'selected':'')+">Webster</option><option value='At Grading' "+(item.arrival=='At Grading'?'selected':'')+">Grading</option></select></div></div></div>";
+            }
+            div.innerHTML += html;
+         });
+         
+         var btn = document.getElementById('btn-cont-submit'); var ini = document.getElementById('inp-cont-init');
+         if(allValid) { ini.disabled = false; ini.placeholder = "Enter Initials"; } 
+         else { ini.disabled = true; ini.placeholder = "Fix Red Items First"; btn.disabled = true; }
+      }
+
+      function toggleInlineImg(id) { var el = document.getElementById(id); if(el.classList.contains('hidden')) el.classList.remove('hidden'); else el.classList.add('hidden'); }
+      function updCont(idx, field, val) { contractItems[idx][field] = val; }
+      function checkContBtn() { document.getElementById('btn-cont-submit').disabled = (document.getElementById('inp-cont-init').value === ""); }
+      
+      function saveContract() {
+         var ini = document.getElementById('inp-cont-init').value;
+         showLoading();
+         apiCall("submitContractBatch", { items: contractItems, ini: ini }).then(function(res){
+            hideLoading();
+            if(res.success) { showModal("Success", "Batch Checked In!", "green"); resetContract(); }
+            else { showModal("Error", res.error, "red"); }
+         });
+      }
+
+      // --- 3. QUICK & BATCH MOVE ---
+      function getLocStr(bId, sId) { var b = document.getElementById(bId).value.trim().toUpperCase(); var s = document.getElementById(sId).value.trim(); if(b && s) return b + " SHELF " + s; return b; }
+      function resetQuick() { stopScanner(); document.getElementById('qm-item').value=""; document.getElementById('qm-loc').value=""; document.getElementById('qm-shelf').value=""; document.getElementById('qm-status').innerText=""; }
+      
+      function runQuickMove() {
+         var item = document.getElementById('qm-item').value; var loc = getLocStr('qm-loc', 'qm-shelf');
+         if(!item || !loc) return showModal("Error", "Missing Item or Location", "red");
+         showLoading();
+         apiCall("updateSingleLocation", { item: item, loc: loc }).then(function(res) {
+            hideLoading();
+            if(res.success) { document.getElementById('qm-status').innerText = "✔ Moved " + item; document.getElementById('qm-item').value = ""; } 
+            else { showModal("Error", res.error, "red"); }
+         });
+      }
+      
+      function resetBatch() { stopScanner(); batchIds=[]; document.getElementById('bm-list').innerHTML=""; document.getElementById('bm-loc').value=""; document.getElementById('bm-shelf').value=""; document.getElementById('batch-actions').classList.add('hidden'); }
+      
+      function searchBatchLocation() {
+         var loc = getLocStr('bm-loc', 'bm-shelf'); if(!loc) return;
+         document.getElementById('batch-actions').classList.remove('hidden'); document.getElementById('batch-loc-header').innerText = "Location: " + loc;
+         document.getElementById('batch-current-list').innerHTML = "<div class='text-muted p-2'>Loading location data...</div>"; document.getElementById('batch-current-list').classList.remove('hidden');
+         
+         apiCall("getLocationInventory", { loc: loc }).then(function(res){
+            if(res.items && res.items.length > 0) {
+               var h = "";
+               res.items.forEach(function(i, idx){
+                  var img = i.image || "https://drive.google.com/thumbnail?id=1QKFdyVCLY4vFeqyhJSmmv_mqa__Ydex1&sz=w1000";
+                  h += "<div class='contract-card status-green'><div class='d-flex justify-content-between align-items-center'><div><strong>"+i.id+"</strong><br><span style='font-size:0.8rem;'>"+i.title+"</span></div><div><button class='btn btn-sm btn-outline-light' onclick='toggleInlineImg(\"batch-img-"+idx+"\")'>📷</button></div></div><img id='batch-img-"+idx+"' src='"+img+"' class='hidden' style='width:100%; border-radius:8px; margin-top:10px; max-height:200px; object-fit:contain;'></div>";
+               });
+               document.getElementById('batch-current-list').innerHTML = h;
+            } else { document.getElementById('batch-current-list').innerHTML = "<div class='text-muted p-2'>Location is empty.</div>"; }
+         });
+      }
+      
+      function addBatch() {
+         var id = document.getElementById('bm-item').value; if(!id) return;
+         if(batchIds.indexOf(id) === -1) { batchIds.push(id); document.getElementById('bm-list').innerHTML = batchIds.map(function(i){ return "<div class='batch-item fw-bold'><span>"+i+"</span></div>" }).join(''); }
+         document.getElementById('bm-item').value = ""; document.getElementById('bm-item').focus();
+      }
+      
+      function runBatchSubmit() {
+         var loc = getLocStr('bm-loc', 'bm-shelf'); if(!loc || batchIds.length === 0) return showModal("Error", "Missing Location or Items to Move", "red");
+         showLoading();
+         apiCall("updateBatchLocation", { batchIds: batchIds, loc: loc }).then(function(res){
+            hideLoading();
+            if(res.error) return showModal("Error", res.error, "red");
+            showModal("Success", "Moved "+res.count+" Items", "green"); batchIds=[]; document.getElementById('bm-list').innerHTML=""; searchBatchLocation(); 
+         });
+      }
+      
+      function runBatchClear() {
+         var loc = getLocStr('bm-loc', 'bm-shelf'); if(!loc) return;
+         if(confirm("Clear all items from "+loc+"?")) {
+            showLoading();
+            apiCall("clearItemsFromLocation", { loc: loc }).then(function(res){ 
+                hideLoading(); 
+                if(res.error) return showModal("Error", res.error, "red");
+                showModal("Cleared", res.clearedCount+" items removed from location.", "green"); searchBatchLocation(); 
+            });
+         }
+      }
+
+      function showModal(title, msg, colorHex) {
+         var overlay = document.getElementById('modal-overlay'); var box = document.getElementById('modal-box-content');
+         var c = (colorHex === "red") ? "#dc3545" : "#198754"; var icon = (colorHex === "red") ? "⚠" : "✔";
+         box.innerHTML = `<h2 style="color:${c}; margin-bottom:10px; font-size:3rem;">${icon}</h2><h3 class="fw-bold">${title}</h3><p class="mb-4">${msg}</p><button class="btn btn-outline-light w-100" onclick="closeModal()">Close</button>`;
+         box.style.borderColor = c; overlay.classList.remove('hidden');
+      }
+      function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+    </script>
+  </body>
+</html>
