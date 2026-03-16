@@ -6,79 +6,54 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
     <style>
       body { background-color: #212529; color: #e0e0e0; font-family: 'Montserrat', sans-serif; padding-bottom: 80px; }
       .app-container { max-width: 600px; margin: 0 auto; padding: 15px; }
-      
       .nav-pills { display: flex; gap: 5px; margin-bottom: 20px; }
       .nav-item { flex-grow: 1; }
       .nav-pills .nav-item:first-child { flex: 0 0 44%; } 
-      
-      .nav-pills .nav-link { 
-        color: #adb5bd; border: 1px solid #495057; border-radius: 6px; text-align: center;
-        width: 100%; padding: 10px 2px; font-size: 0.85rem; white-space: nowrap; 
-        overflow: hidden; text-overflow: ellipsis; cursor: pointer;
-      }
+      .nav-pills .nav-link { color: #adb5bd; border: 1px solid #495057; border-radius: 6px; text-align: center; width: 100%; padding: 10px 2px; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
       .nav-pills .nav-link.active { background-color: #dcb043; color: #000; font-weight: bold; border-color: #dcb043; }
-      
       .logo-styled { background-color: #ffffff; border: 1px solid #adb5bd; border-radius: 8px; padding: 5px; height: 50px; width: auto; display: block; margin: 0 auto 15px auto; }
       .info-box { background-color: #343a40; border: 1px solid #495057; border-radius: 5px; padding: 10px; margin-bottom: 10px; }
       .info-label { font-size: 0.75rem; color: #adb5bd; text-transform: uppercase; letter-spacing: 1px; }
       .info-value { font-size: 1rem; font-weight: 600; }
-      
-      .form-control-dark, .form-select-dark { 
-        background-color: #1a1d20 !important; border: 1px solid #495057 !important; 
-        color: #ffffff !important; font-size: 1.1rem !important; padding: 12px !important;
-      }
+      .form-control-dark, .form-select-dark { background-color: #1a1d20 !important; border: 1px solid #495057 !important; color: #ffffff !important; font-size: 1.1rem !important; padding: 12px !important; }
       .form-control-dark:focus, .form-select-dark:focus { border-color: #dcb043 !important; box-shadow: none; outline: none; }
       .form-control-dark:disabled { background-color: #111315 !important; color: #6c757d !important; opacity: 0.8; cursor: not-allowed; }
       .form-control-dark::placeholder { color: #888 !important; opacity: 1; font-style: normal; }
-      
       .btn-gold { background-color: #dcb043; color: #000; font-weight: bold; border: none; text-transform: uppercase; letter-spacing: 0.5px; width: 100%; padding: 15px; border-radius: 6px; }
       .btn-gold:hover { background-color: #c49b38; color: #000; }
       .btn-gold:disabled { background-color: #6c757d; opacity: 0.5; }
-      
       .badge-master { background-color: #0d6efd; color: white; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; display: inline-block; margin-bottom: 10px; }
       .badge-pending { background-color: #dcb043; color: black; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; display: inline-block; margin-bottom: 10px; }
-      
       #img-main { background-color: #000; border-radius: 8px; margin-bottom: 15px; display: block; width: auto; max-width: 100%; max-height: 250px; object-fit: contain; margin-left: auto; margin-right: auto; }
-
       .toggle-container { display: flex; justify-content: center; margin-bottom: 15px; }
       .toggle-btn { padding: 8px 20px; border: 1px solid #adb5bd; background: transparent; color: #adb5bd; cursor: pointer; flex: 1; }
       .toggle-btn:first-child { border-radius: 6px 0 0 6px; }
       .toggle-btn:last-child { border-radius: 0 6px 6px 0; }
       .toggle-btn.active { background: #dcb043; color: #000; border-color: #dcb043; font-weight: bold; }
-
       .hidden { display: none !important; }
-      
       #batch-list, #list-hist, #contract-list, #batch-current-list { max-height: 55vh; overflow-y: auto; background: #2b3035; border: 1px solid #495057; border-radius: 5px; padding: 5px; }
       .hist-item { padding: 10px; border-bottom: 1px solid #495057; }
       .batch-item { padding: 8px 10px; border-bottom: 1px solid #495057; display: flex; justify-content: space-between; align-items:center; }
-
       .contract-card { background: #1a1d20; border: 1px solid #495057; border-radius: 8px; margin-bottom: 10px; padding: 10px; }
       .contract-card.status-red { border-left: 5px solid #dc3545; }
       .contract-card.status-green { border-left: 5px solid #198754; }
       .badge-missing { display: inline-block; background: #dc3545; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-right: 4px; margin-top: 4px; text-transform: uppercase; }
-
       #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; }
       .modal-box { background: #2b3035; border: 2px solid #fff; padding: 25px; border-radius: 12px; width: 85%; max-width: 400px; text-align: center; }
-      
       .loader { border: 4px solid #f3f3f3; border-top: 4px solid #dcb043; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-      
-      /* html5-qrcode overrides for dark mode */
       #reader { background: #000; border-radius: 8px; overflow: hidden; border: none !important; }
       #reader video { object-fit: cover; }
     </style>
   </head>
   <body>
-
     <div class="app-container">
       <img src="https://images.squarespace-cdn.com/content/v1/5d2cd22ad371ab000160912d/1563290301359-8SXGUKZ7CVXURMSR4K0R/Revised+Logo+-+Miller+and+Miller+-+2019.png" class="logo-styled">
-
       <ul class="nav nav-pills nav-fill">
         <li class="nav-item"><a class="nav-link active" id="tab-lookup" onclick="switchMainTab('lookup')">Lookup</a></li>
         <li class="nav-item"><a class="nav-link" id="tab-quick" onclick="switchMainTab('quick')">Quick Move</a></li>
@@ -99,43 +74,35 @@
 
          <div id="ui-single">
             <div class="d-flex justify-content-end mb-2"><button class="btn btn-sm btn-outline-light" onclick="resetLookup()">Reset ↻</button></div>
-            
             <div class="input-group mb-3">
                <input type="text" inputmode="numeric" pattern="[0-9]*" id="inp-lookup" class="form-control form-control-dark" placeholder="Enter Inventory #">
                <button class="btn btn-outline-danger" onclick="clearField('inp-lookup')">✕</button>
                <button class="btn btn-outline-secondary" onclick="startScan('inp-lookup')">📷</button>
                <button class="btn btn-primary" onclick="runSingleSearch()">Search</button>
             </div>
-
             <div id="res-single" class="hidden">
                <div class="text-center mb-2"><span id="badge-source" class="badge-master">Loading...</span></div>
-                
                <div id="tab-container" class="d-flex gap-2 mb-3">
                   <button class="btn btn-sm btn-gold flex-grow-1 fw-bold" id="tab-link-inv" onclick="showSub('inv')">Inventory</button>
                   <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-ship" onclick="showSub('ship')">Shipping</button>
                   <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-hist" onclick="showSub('hist')">History</button>
                </div>
-
                <div id="core-item-info">
                   <img id="img-main" src="">
                   <div class="info-box"><div class="info-label">Inventory #</div><div class="info-value" id="val-id"></div></div>
                   <div class="info-box mb-3"><div class="info-label">Item Title</div><div class="info-value" id="val-title"></div></div>
                </div>
-
                <div id="sub-inv">
                   <div class="info-box"><div class="info-label">Auction Date</div><div class="info-value" id="val-date"></div></div>
-                  
                   <div class="p-3 border border-secondary rounded mb-3" style="background:#2b3035">
                      <h6 id="edit-header" class="text-primary mb-3">Edit Data</h6>
                      <div id="missing-alert" class="alert alert-danger p-2 small hidden"></div>
-                      
                      <label class="info-label">Location</label>
                      <div class="input-group mb-2">
                         <input type="text" id="edit-loc" class="form-control form-control-dark">
                         <button class="btn btn-outline-danger" onclick="clearField('edit-loc')">✕</button>
                         <button class="btn btn-outline-secondary" onclick="startScan('edit-loc')">📷</button>
                      </div>
-                      
                      <div id="grp-pending">
                         <label class="info-label">Freight Required</label>
                         <select id="edit-freight" class="form-select form-select-dark mb-2"><option value="">Select...</option><option value="Yes">Yes</option><option value="No">No</option></select>
@@ -147,29 +114,21 @@
                            <button class="btn btn-outline-danger" onclick="clearField('edit-initials')">✕</button>
                         </div>
                      </div>
-                      
                      <div id="grp-master" class="hidden">
                         <label class="info-label">Notes</label>
                         <textarea id="edit-notes" class="form-control form-control-dark mb-3" rows="2"></textarea>
                      </div>
-
                      <button id="btn-save-single" class="btn btn-success w-100 fw-bold" onclick="saveSingle()">CHECK IN ITEM</button>
                   </div>
                </div>
-
                <div id="sub-ship" class="hidden">
                   <div class="info-box"><div class="info-label">Location</div><div class="info-value" id="val-ship-loc"></div></div>
                   <div class="info-box"><div class="info-label">Dimensions</div><div class="info-value" id="val-dims"></div></div>
                   <div class="info-box"><div class="info-label">Freight Required</div><div class="info-value" id="val-ship-freight"></div></div>
                   <div class="info-box"><div class="info-label">Notes</div><div class="info-value" id="val-notes"></div></div>
                </div>
-
-               <div id="sub-hist" class="hidden">
-                  <div id="list-hist"></div>
-               </div>
-               
-               <hr class="border-secondary mt-4">
-               <button class="btn btn-outline-light w-100" onclick="resetLookup()">Scan Next Item</button>
+               <div id="sub-hist" class="hidden"><div id="list-hist"></div></div>
+               <hr class="border-secondary mt-4"><button class="btn btn-outline-light w-100" onclick="resetLookup()">Scan Next Item</button>
             </div>
          </div>
 
@@ -186,9 +145,11 @@
             </div>
             
             <div id="res-contract" class="hidden">
+               <button class="btn btn-outline-info w-100 mb-3 fw-bold" onclick="saveContractEdits()">💾 Save Pending Info (No Check-In)</button>
+               
                <div id="contract-list"></div>
                <hr class="border-secondary">
-               <label class="info-label">Initials (Locked until all Pending are Green)</label>
+               <label class="info-label text-warning" id="lbl-cont-init">Initials (Unlocks when at least 1 item is Green)</label>
                <div class="input-group mb-3">
                   <input type="text" id="inp-cont-init" class="form-control form-control-dark" placeholder="Locked" disabled oninput="this.value=this.value.toUpperCase(); checkContBtn();">
                   <button class="btn btn-outline-danger" onclick="clearField('inp-cont-init')">✕</button>
@@ -235,13 +196,10 @@
                <button class="btn btn-outline-secondary" onclick="startScan('bm-loc')">📷</button>
             </div>
          </div>
-         
          <div id="batch-actions" class="hidden">
             <h4 id="batch-loc-header" class="text-white fw-bold mb-2"></h4>
-            
             <button class="btn btn-sm btn-outline-secondary w-100 mb-3" type="button" onclick="toggleCollapse('batch-current-list')">View Items Already Here (Click to Expand)</button>
             <div id="batch-current-list" class="hidden mb-3"></div>
-
             <div class="input-group mb-2">
                <input type="text" inputmode="numeric" pattern="[0-9]*" id="bm-item" class="form-control form-control-dark" placeholder="Scan Item to Add">
                <button class="btn btn-outline-danger" onclick="clearField('bm-item')">✕</button>
@@ -267,281 +225,119 @@
       async function apiCall(actionName, dataObj) {
         try {
           let response = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            redirect: "follow", 
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8" 
-            },
+            method: "POST", redirect: "follow", 
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ action: actionName, data: dataObj })
           });
           return await response.json();
         } catch (error) {
-          console.error(error);
           return { error: "Network Error: Could not reach database. Check your Web App URL." };
         }
       }
 
-      var activeInput = null;
-      var currentSingle = null;
-      var contractItems = [];
-      var batchIds = [];
-      var html5QrCode; 
+      var activeInput = null; var currentSingle = null; var contractItems = []; var batchIds = []; var html5QrCode; 
 
-      function showLoading() {
-         var box = document.getElementById('modal-box-content');
-         box.innerHTML = `<div class="loader"></div><h4 class="mt-3">Loading...</h4>`;
-         box.style.borderColor = "#dcb043";
-         document.getElementById('modal-overlay').classList.remove('hidden');
-      }
+      function showLoading() { var box = document.getElementById('modal-box-content'); box.innerHTML = `<div class="loader"></div><h4 class="mt-3">Loading...</h4>`; box.style.borderColor = "#dcb043"; document.getElementById('modal-overlay').classList.remove('hidden'); }
       function hideLoading() { document.getElementById('modal-overlay').classList.add('hidden'); }
 
-      function switchMainTab(tabId) {
-         stopScanner();
-         ['lookup','quick','batch'].forEach(t => { document.getElementById('view-'+t).classList.add('hidden'); document.getElementById('tab-'+t).classList.remove('active'); });
-         document.getElementById('view-'+tabId).classList.remove('hidden'); document.getElementById('tab-'+tabId).classList.add('active');
-      }
+      function switchMainTab(tabId) { stopScanner(); ['lookup','quick','batch'].forEach(t => { document.getElementById('view-'+t).classList.add('hidden'); document.getElementById('tab-'+t).classList.remove('active'); }); document.getElementById('view-'+tabId).classList.remove('hidden'); document.getElementById('tab-'+tabId).classList.add('active'); }
 
-      function switchLookupMode(mode) {
-         stopScanner();
-         if(mode === 'single') {
-            document.getElementById('ui-single').classList.remove('hidden'); document.getElementById('ui-contract').classList.add('hidden');
-            document.getElementById('mode-single').classList.add('active'); document.getElementById('mode-contract').classList.remove('active');
-         } else {
-            document.getElementById('ui-single').classList.add('hidden'); document.getElementById('ui-contract').classList.remove('hidden');
-            document.getElementById('mode-single').classList.remove('active'); document.getElementById('mode-contract').classList.add('active');
-         }
-      }
+      function switchLookupMode(mode) { stopScanner(); if(mode === 'single') { document.getElementById('ui-single').classList.remove('hidden'); document.getElementById('ui-contract').classList.add('hidden'); document.getElementById('mode-single').classList.add('active'); document.getElementById('mode-contract').classList.remove('active'); } else { document.getElementById('ui-single').classList.add('hidden'); document.getElementById('ui-contract').classList.remove('hidden'); document.getElementById('mode-single').classList.remove('active'); document.getElementById('mode-contract').classList.add('active'); } }
 
       function showSub(sub) {
-         // Safely toggle tabs without overwriting the 'hidden' class on the buttons themselves
          ['inv','ship','hist'].forEach(s => { 
             document.getElementById('sub-'+s).classList.add('hidden');
             let btn = document.getElementById('tab-link-'+s);
-            if(btn) {
-                btn.classList.remove('btn-gold');
-                btn.classList.add('btn-outline-light');
-            }
+            if(btn) { btn.classList.remove('btn-gold'); btn.classList.add('btn-outline-light'); }
          });
-         
          document.getElementById('sub-'+sub).classList.remove('hidden');
          let activeBtn = document.getElementById('tab-link-'+sub);
-         if(activeBtn) {
-             activeBtn.classList.remove('btn-outline-light');
-             activeBtn.classList.add('btn-gold');
-         }
+         if(activeBtn) { activeBtn.classList.remove('btn-outline-light'); activeBtn.classList.add('btn-gold'); }
          
-         // Hides the core info (Image, Title, Inv #) strictly when viewing the History Tab
          var coreInfo = document.getElementById('core-item-info');
-         if(coreInfo) {
-             if (sub === 'hist') {
-                coreInfo.classList.add('hidden');
-             } else {
-                coreInfo.classList.remove('hidden');
-             }
-         }
+         if(coreInfo) { if (sub === 'hist') { coreInfo.classList.add('hidden'); } else { coreInfo.classList.remove('hidden'); } }
       }
 
       function clearField(id) { var el = document.getElementById(id); if(el) { el.value = ""; el.focus(); } }
       function toggleCollapse(id) { var el = document.getElementById(id); if(el.classList.contains('hidden')) el.classList.remove('hidden'); else el.classList.add('hidden'); }
 
-      // --- UPGRADED HTML5-QRCODE SCANNER LOGIC ---
       function startScan(inputId) {
-         activeInput = inputId;
-         document.getElementById('scanner-wrapper').classList.remove('hidden');
-         window.scrollTo({ top: 0, behavior: 'smooth' });
-         
-         if (!html5QrCode) {
-             html5QrCode = new Html5Qrcode("reader");
-         }
-         
-         html5QrCode.start(
-             { facingMode: "environment" },
-             {
-                 fps: 10, // Slower FPS gives auto-focus more time to lock on
-                 qrbox: function(viewfinderWidth, viewfinderHeight) {
-                     // Tall and wide box so it never clips a barcode
-                     return { width: viewfinderWidth * 0.95, height: viewfinderHeight * 0.5 };
-                 }
-             },
-             function(decodedText, decodedResult) {
-                 onScan(decodedText);
-             },
-             function(errorMessage) {
-                 // Ignore background errors while it hunts
-             }
-         ).catch(function(err) {
-             showModal("Camera Error", "Could not start camera. Make sure permissions are granted.", "red");
-             document.getElementById('scanner-wrapper').classList.add('hidden');
-         });
+         activeInput = inputId; document.getElementById('scanner-wrapper').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' });
+         if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
+         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: function(vw, vh) { return { width: vw * 0.95, height: vh * 0.5 }; } }, function(text) { onScan(text); }, function(err) {}).catch(function(err) { showModal("Camera Error", "Could not start camera.", "red"); document.getElementById('scanner-wrapper').classList.add('hidden'); });
       }
 
-      function stopScanner() {
-         if (html5QrCode && html5QrCode.isScanning) {
-             html5QrCode.stop().then(() => {
-                 document.getElementById('scanner-wrapper').classList.add('hidden');
-             }).catch(err => {
-                 console.log(err);
-                 document.getElementById('scanner-wrapper').classList.add('hidden');
-             });
-         } else {
-             document.getElementById('scanner-wrapper').classList.add('hidden');
-         }
-      }
+      function stopScanner() { if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().then(() => { document.getElementById('scanner-wrapper').classList.add('hidden'); }).catch(err => { document.getElementById('scanner-wrapper').classList.add('hidden'); }); } else { document.getElementById('scanner-wrapper').classList.add('hidden'); } }
 
-      function onScan(txt) {
-         stopScanner();
-         if(activeInput) {
-            var el = document.getElementById(activeInput);
-            if(el) el.value = txt;
-            if(activeInput === 'inp-lookup') runSingleSearch();
-            if(activeInput === 'inp-contract') runContractSearch();
-            if(activeInput === 'qm-item') document.getElementById('qm-loc').focus();
-            if(activeInput === 'bm-item') addBatch();
-            if(activeInput.startsWith('cont-loc-')) { var idx = activeInput.split('-')[2]; updCont(idx, 'location', txt); }
-         }
-      }
+      function onScan(txt) { stopScanner(); if(activeInput) { var el = document.getElementById(activeInput); if(el) el.value = txt; if(activeInput === 'inp-lookup') runSingleSearch(); if(activeInput === 'inp-contract') runContractSearch(); if(activeInput === 'qm-item') document.getElementById('qm-loc').focus(); if(activeInput === 'bm-item') addBatch(); if(activeInput.startsWith('cont-loc-')) { var idx = activeInput.split('-')[2]; updCont(idx, 'location', txt); } } }
 
-      // --- 1. SINGLE ITEM LOGIC ---
       function runSingleSearch() {
-         var id = document.getElementById('inp-lookup').value;
-         if(!id) return;
-         document.getElementById('res-single').classList.add('hidden');
-         showLoading();
-         
+         var id = document.getElementById('inp-lookup').value; if(!id) return;
+         document.getElementById('res-single').classList.add('hidden'); showLoading();
          apiCall("getItemData", { id: id }).then(function(data) {
-            hideLoading();
-            if(data.error) return showModal("Not Found", data.error, "red");
-            currentSingle = data;
-            
-            // Force interface to default back to Inventory tab to reset layouts
-            showSub('inv'); 
-            
-            document.getElementById('res-single').classList.remove('hidden');
-            
+            hideLoading(); if(data.error) return showModal("Not Found", data.error, "red");
+            currentSingle = data; showSub('inv'); document.getElementById('res-single').classList.remove('hidden');
             var fallback = "https://drive.google.com/thumbnail?id=1QKFdyVCLY4vFeqyhJSmmv_mqa__Ydex1&sz=w1000";
-            document.getElementById('img-main').src = data.image || fallback;
-            document.getElementById('val-id').innerText = data.id; document.getElementById('val-title').innerText = data.title;
-            document.getElementById('val-date').innerText = data.auctionDate; document.getElementById('val-dims').innerText = data.dimensions;
-            document.getElementById('val-notes').innerText = data.notes;
-            
-            // Populate Shipping Tab fields
-            document.getElementById('val-ship-loc').innerText = data.location || "None";
-            document.getElementById('val-ship-freight').innerText = data.freight || "None";
-            
+            document.getElementById('img-main').src = data.image || fallback; document.getElementById('val-id').innerText = data.id; document.getElementById('val-title').innerText = data.title; document.getElementById('val-date').innerText = data.auctionDate; document.getElementById('val-dims').innerText = data.dimensions; document.getElementById('val-notes').innerText = data.notes;
+            document.getElementById('val-ship-loc').innerText = data.location || "None"; document.getElementById('val-ship-freight').innerText = data.freight || "None";
             var locInput = document.getElementById('edit-loc');
+            
             if(data.source === "MASTER") {
-               document.getElementById('badge-source').innerText = "MASTER LOG"; document.getElementById('badge-source').className = "badge-master";
-               document.getElementById('edit-header').innerText = "Master Log Data"; document.getElementById('edit-header').className = "text-primary mb-3";
-               document.getElementById('grp-pending').classList.add('hidden'); document.getElementById('grp-master').classList.remove('hidden');
-               document.getElementById('missing-alert').classList.add('hidden');
-               
-               // Show entire tab menu bar for Master Log items
+               document.getElementById('badge-source').innerText = "MASTER LOG"; document.getElementById('badge-source').className = "badge-master"; document.getElementById('edit-header').innerText = "Master Log Data"; document.getElementById('edit-header').className = "text-primary mb-3"; document.getElementById('grp-pending').classList.add('hidden'); document.getElementById('grp-master').classList.remove('hidden'); document.getElementById('missing-alert').classList.add('hidden');
                document.getElementById('tab-container').classList.remove('hidden');
-
-               locInput.value = data.location; document.getElementById('edit-notes').value = data.notes;
-               document.getElementById('btn-save-single').innerText = "SAVE MASTER DATA";
-               document.getElementById('btn-save-single').className = "btn btn-success w-100 fw-bold";
+               locInput.value = data.location; document.getElementById('edit-notes').value = data.notes; document.getElementById('btn-save-single').innerText = "SAVE MASTER DATA"; document.getElementById('btn-save-single').className = "btn btn-success w-100 fw-bold";
             } else {
-               document.getElementById('badge-source').innerText = "PENDING LOG"; document.getElementById('badge-source').className = "badge-pending";
-               document.getElementById('edit-header').innerText = "Check In (Pending)"; document.getElementById('edit-header').className = "text-warning mb-3";
-               document.getElementById('grp-pending').classList.remove('hidden'); document.getElementById('grp-master').classList.add('hidden');
-               
-               // Hide the entire tab menu bar for Pending Log items (No clutter)
+               document.getElementById('badge-source').innerText = "PENDING LOG"; document.getElementById('badge-source').className = "badge-pending"; document.getElementById('edit-header').innerText = "Check In (Pending)"; document.getElementById('edit-header').className = "text-warning mb-3"; document.getElementById('grp-pending').classList.remove('hidden'); document.getElementById('grp-master').classList.add('hidden');
                document.getElementById('tab-container').classList.add('hidden');
-               
-               locInput.value = data.location; document.getElementById('edit-freight').value = data.freight;
-               document.getElementById('edit-arrival').value = data.arrival; document.getElementById('edit-initials').value = data.initials;
-               
+               locInput.value = data.location; document.getElementById('edit-freight').value = data.freight; document.getElementById('edit-arrival').value = data.arrival; document.getElementById('edit-initials').value = data.initials;
                if(data.missingHeaders && data.missingHeaders.length > 0) {
-                  document.getElementById('missing-alert').innerText = "Missing Info:\n• " + data.missingHeaders.join("\n• ");
-                  document.getElementById('missing-alert').classList.remove('hidden');
-                  document.getElementById('edit-initials').disabled = true; document.getElementById('edit-initials').placeholder = "Locked";
-                  document.getElementById('btn-save-single').innerText = "SAVE MISSING INFO";
-                  document.getElementById('btn-save-single').className = "btn btn-primary w-100 fw-bold";
+                  document.getElementById('missing-alert').innerText = "Missing Info:\n• " + data.missingHeaders.join("\n• "); document.getElementById('missing-alert').classList.remove('hidden'); document.getElementById('edit-initials').disabled = true; document.getElementById('edit-initials').placeholder = "Locked"; document.getElementById('btn-save-single').innerText = "SAVE MISSING INFO"; document.getElementById('btn-save-single').className = "btn btn-primary w-100 fw-bold";
                } else {
-                  document.getElementById('missing-alert').classList.add('hidden');
-                  document.getElementById('edit-initials').disabled = false; document.getElementById('edit-initials').placeholder = "Required";
-                  document.getElementById('btn-save-single').innerText = "CHECK IN ITEM";
-                  document.getElementById('btn-save-single').className = "btn btn-success w-100 fw-bold";
+                  document.getElementById('missing-alert').classList.add('hidden'); document.getElementById('edit-initials').disabled = false; document.getElementById('edit-initials').placeholder = "Required"; document.getElementById('btn-save-single').innerText = "CHECK IN ITEM"; document.getElementById('btn-save-single').className = "btn btn-success w-100 fw-bold";
                }
             }
-            
             var hList = document.getElementById('list-hist'); hList.innerHTML = "";
-            if(data.history && data.history.length > 0) {
-               data.history.forEach(function(h){ hList.innerHTML += "<div class='hist-item'><span class='hist-date'>"+h.date+"</span><br><span class='text-light'>"+h.action+":</span> <span class='text-muted'>"+h.oldLoc+" > "+h.newLoc+" ("+h.user+")</span></div>"; });
-            } else { hList.innerHTML = "<div class='p-3 text-center text-muted'>No item history found.</div>"; }
-            
+            if(data.history && data.history.length > 0) { data.history.forEach(function(h){ hList.innerHTML += "<div class='hist-item'><span class='hist-date'>"+h.date+"</span><br><span class='text-light'>"+h.action+":</span> <span class='text-muted'>"+h.oldLoc+" > "+h.newLoc+" ("+h.user+")</span></div>"; }); } else { hList.innerHTML = "<div class='p-3 text-center text-muted'>No item history found.</div>"; }
          });
       }
 
       function saveSingle() {
-         if(!currentSingle) return;
-         showLoading();
+         if(!currentSingle) return; showLoading();
          if(currentSingle.source === "MASTER") {
             var loc = document.getElementById('edit-loc').value; var note = document.getElementById('edit-notes').value;
-            apiCall("updateMasterData", { id: currentSingle.id, loc: loc, note: note }).then(function(res){ 
-                hideLoading(); 
-                if(res.error) return showModal("Error", res.error, "red");
-                showModal("Saved", "Master Data Updated", "green"); 
-            });
+            apiCall("updateMasterData", { id: currentSingle.id, loc: loc, note: note }).then(function(res){ hideLoading(); if(res.error) return showModal("Error", res.error, "red"); showModal("Saved", "Master Data Updated", "green"); });
          } else {
-            var loc = document.getElementById('edit-loc').value; var frt = document.getElementById('edit-freight').value;
-            var arr = document.getElementById('edit-arrival').value; var ini = document.getElementById('edit-initials').value;
-            
-            var isLocked = document.getElementById('edit-initials').disabled;
-            if(!isLocked && !ini) { hideLoading(); return showModal("Error", "Initials Required", "red"); }
-            
+            var loc = document.getElementById('edit-loc').value; var frt = document.getElementById('edit-freight').value; var arr = document.getElementById('edit-arrival').value; var ini = document.getElementById('edit-initials').value;
+            var isLocked = document.getElementById('edit-initials').disabled; if(!isLocked && !ini) { hideLoading(); return showModal("Error", "Initials Required", "red"); }
             apiCall("updatePendingData", { id: currentSingle.id, loc: loc, frt: frt, arr: arr, ini: (isLocked ? "" : ini) }).then(function(res){
-               hideLoading();
-               if(res.success) { 
-                  if(isLocked) {
-                     showModal("Info Saved", "Required fields updated! You can now sign and check in.", "green");
-                     runSingleSearch(); 
-                  } else {
-                     showModal("Checked In!", "Item updated successfully.", "green"); 
-                     resetLookup(); 
-                  }
-               } 
-               else { showModal("Error", res.error || res.message, "red"); }
+               hideLoading(); if(res.success) { if(isLocked) { showModal("Info Saved", "Required fields updated!", "green"); runSingleSearch(); } else { showModal("Checked In!", "Item updated successfully.", "green"); resetLookup(); } } else { showModal("Error", res.error || res.message, "red"); }
             });
          }
       }
       function resetLookup() { document.getElementById('res-single').classList.add('hidden'); document.getElementById('inp-lookup').value = ""; }
 
-      // --- 2. CONTRACT LOGIC ---
       function runContractSearch() {
-         var id = document.getElementById('inp-contract').value;
-         if(!id) return;
-         document.getElementById('res-contract').classList.remove('hidden');
-         document.getElementById('contract-title-header').innerText = "Searching...";
-         document.getElementById('contract-list').innerHTML = "";
-         showLoading();
-         
+         var id = document.getElementById('inp-contract').value; if(!id) return;
+         document.getElementById('res-contract').classList.remove('hidden'); document.getElementById('contract-title-header').innerText = "Searching..."; document.getElementById('contract-list').innerHTML = ""; showLoading();
          apiCall("getContractItems", { id: id }).then(function(res) {
-            hideLoading();
-            if(res.error) { document.getElementById('contract-title-header').innerText = res.error; return; }
-            contractItems = res.items;
-            document.getElementById('contract-title-header').innerText = "Contract: " + res.schedCode;
-            renderContract();
+            hideLoading(); if(res.error) { document.getElementById('contract-title-header').innerText = res.error; return; }
+            contractItems = res.items; document.getElementById('contract-title-header').innerText = "Contract: " + res.schedCode; renderContract();
          });
       }
-
       function resetContract() { document.getElementById('res-contract').classList.add('hidden'); document.getElementById('inp-contract').value = ""; document.getElementById('contract-title-header').innerText = "Contract Lookup"; }
 
       function renderContract() {
          var div = document.getElementById('contract-list'); div.innerHTML = "";
-         var allValid = true;
+         var anyValid = false; // CHANGED: Only requires ONE valid item to unlock check-in
          
          contractItems.forEach(function(item, idx){
             var isMaster = (item.source === "MASTER"); var isOk = (item.missing.length === 0);
-            if(!isOk && !isMaster) allValid = false; 
+            if(!isMaster && isOk) anyValid = true; 
             
             var border = (isOk || isMaster) ? "status-green" : "status-red";
-            var fallback = "https://drive.google.com/thumbnail?id=1QKFdyVCLY4vFeqyhJSmmv_mqa__Ydex1&sz=w1000";
-            var img = item.image || fallback;
+            var fallback = "https://drive.google.com/thumbnail?id=1QKFdyVCLY4vFeqyhJSmmv_mqa__Ydex1&sz=w1000"; var img = item.image || fallback;
             
             var html = "<div class='contract-card "+border+"'><div style='display:flex; justify-content:space-between; align-items:flex-start;'><div><strong>"+item.id+"</strong><br><span style='font-size:0.85rem;color:#adb5bd;'>"+item.title+"</span></div><div><button class='btn btn-sm btn-outline-light' onclick='toggleInlineImg(\"cont-img-"+idx+"\")'>📷</button></div></div><img id='cont-img-"+idx+"' src='"+img+"' class='hidden' style='width:100%; border-radius:8px; margin-top:10px; max-height:200px; object-fit:contain;'>";
-                
             if(isMaster) { html += "<div class='mt-2 fw-bold text-success small'>✔ Checked In (Master Log)</div><div class='mt-1 small text-muted'>Location: "+(item.location||"None")+"</div></div>";
             } else {
                if(!isOk) html += "<div class='mt-2'><span class='badge-missing'>MISSING: "+item.missing.join(', ')+"</span></div>";
@@ -550,93 +346,57 @@
             div.innerHTML += html;
          });
          
-         var btn = document.getElementById('btn-cont-submit'); var ini = document.getElementById('inp-cont-init');
-         if(allValid) { ini.disabled = false; ini.placeholder = "Enter Initials"; } 
-         else { ini.disabled = true; ini.placeholder = "Fix Red Items First"; btn.disabled = true; }
+         var btn = document.getElementById('btn-cont-submit'); var ini = document.getElementById('inp-cont-init'); var lbl = document.getElementById('lbl-cont-init');
+         if(anyValid) { ini.disabled = false; ini.placeholder = "Enter Initials"; lbl.className = "info-label text-success"; lbl.innerText = "Initials (Will only apply to Green items)"; } 
+         else { ini.disabled = true; ini.placeholder = "Fix Red Items First"; btn.disabled = true; lbl.className = "info-label text-warning"; lbl.innerText = "Initials (Unlocks when at least 1 item is Green)"; }
       }
 
       function toggleInlineImg(id) { var el = document.getElementById(id); if(el.classList.contains('hidden')) el.classList.remove('hidden'); else el.classList.add('hidden'); }
       function updCont(idx, field, val) { contractItems[idx][field] = val; }
       function checkContBtn() { document.getElementById('btn-cont-submit').disabled = (document.getElementById('inp-cont-init').value === ""); }
       
+      // NEW FUNCTION: Save Contract Info Without Initials
+      function saveContractEdits() {
+         showLoading();
+         // Send only the items that are still in Pending Log
+         var pendingItems = contractItems.filter(i => i.source !== "MASTER");
+         apiCall("saveContractEdits", { items: pendingItems }).then(function(res){
+            hideLoading();
+            if(res.success || !res.error) {
+               showModal("Saved", "Pending item info updated successfully.", "green");
+               runContractSearch(); // Auto-Reload the list!
+            } else { showModal("Error", res.error, "red"); }
+         });
+      }
+
+      // UPDATED FUNCTION: Only submit VALID items
       function saveContract() {
          var ini = document.getElementById('inp-cont-init').value;
+         // Filter so we ONLY send items that have 0 missing fields
+         var validItemsToSubmit = contractItems.filter(i => i.source !== "MASTER" && i.missing.length === 0);
+         
+         if(validItemsToSubmit.length === 0) return showModal("Error", "No valid items to check in.", "red");
+
          showLoading();
-         apiCall("submitContractBatch", { items: contractItems, ini: ini }).then(function(res){
+         apiCall("submitContractBatch", { items: validItemsToSubmit, ini: ini }).then(function(res){
             hideLoading();
-            if(res.success) { showModal("Success", "Batch Checked In!", "green"); resetContract(); }
-            else { showModal("Error", res.error, "red"); }
+            if(res.success || !res.error) { 
+               showModal("Success", validItemsToSubmit.length + " Items Checked In!", "green"); 
+               document.getElementById('inp-cont-init').value = ""; // Clear initials box
+               runContractSearch(); // Auto-Reload the list!
+            } else { showModal("Error", res.error, "red"); }
          });
       }
 
-      // --- 3. QUICK & BATCH MOVE ---
       function getLocStr(bId, sId) { var b = document.getElementById(bId).value.trim().toUpperCase(); var s = document.getElementById(sId).value.trim(); if(b && s) return b + " SHELF " + s; return b; }
       function resetQuick() { stopScanner(); document.getElementById('qm-item').value=""; document.getElementById('qm-loc').value=""; document.getElementById('qm-shelf').value=""; document.getElementById('qm-status').innerText=""; }
-      
-      function runQuickMove() {
-         var item = document.getElementById('qm-item').value; var loc = getLocStr('qm-loc', 'qm-shelf');
-         if(!item || !loc) return showModal("Error", "Missing Item or Location", "red");
-         showLoading();
-         apiCall("updateSingleLocation", { item: item, loc: loc }).then(function(res) {
-            hideLoading();
-            if(res.success) { document.getElementById('qm-status').innerText = "✔ Moved " + item; document.getElementById('qm-item').value = ""; } 
-            else { showModal("Error", res.error, "red"); }
-         });
-      }
-      
+      function runQuickMove() { var item = document.getElementById('qm-item').value; var loc = getLocStr('qm-loc', 'qm-shelf'); if(!item || !loc) return showModal("Error", "Missing Item or Location", "red"); showLoading(); apiCall("updateSingleLocation", { item: item, loc: loc }).then(function(res) { hideLoading(); if(res.success) { document.getElementById('qm-status').innerText = "✔ Moved " + item; document.getElementById('qm-item').value = ""; } else { showModal("Error", res.error, "red"); } }); }
       function resetBatch() { stopScanner(); batchIds=[]; document.getElementById('bm-list').innerHTML=""; document.getElementById('bm-loc').value=""; document.getElementById('bm-shelf').value=""; document.getElementById('batch-actions').classList.add('hidden'); }
-      
-      function searchBatchLocation() {
-         var loc = getLocStr('bm-loc', 'bm-shelf'); if(!loc) return;
-         document.getElementById('batch-actions').classList.remove('hidden'); document.getElementById('batch-loc-header').innerText = "Location: " + loc;
-         document.getElementById('batch-current-list').innerHTML = "<div class='text-muted p-2'>Loading location data...</div>"; document.getElementById('batch-current-list').classList.remove('hidden');
-         
-         apiCall("getLocationInventory", { loc: loc }).then(function(res){
-            if(res.items && res.items.length > 0) {
-               var h = "";
-               res.items.forEach(function(i, idx){
-                  var img = i.image || "https://drive.google.com/thumbnail?id=1QKFdyVCLY4vFeqyhJSmmv_mqa__Ydex1&sz=w1000";
-                  h += "<div class='contract-card status-green'><div class='d-flex justify-content-between align-items-center'><div><strong>"+i.id+"</strong><br><span style='font-size:0.8rem;'>"+i.title+"</span></div><div><button class='btn btn-sm btn-outline-light' onclick='toggleInlineImg(\"batch-img-"+idx+"\")'>📷</button></div></div><img id='batch-img-"+idx+"' src='"+img+"' class='hidden' style='width:100%; border-radius:8px; margin-top:10px; max-height:200px; object-fit:contain;'></div>";
-               });
-               document.getElementById('batch-current-list').innerHTML = h;
-            } else { document.getElementById('batch-current-list').innerHTML = "<div class='text-muted p-2'>Location is empty.</div>"; }
-         });
-      }
-      
-      function addBatch() {
-         var id = document.getElementById('bm-item').value; if(!id) return;
-         if(batchIds.indexOf(id) === -1) { batchIds.push(id); document.getElementById('bm-list').innerHTML = batchIds.map(function(i){ return "<div class='batch-item fw-bold'><span>"+i+"</span></div>" }).join(''); }
-         document.getElementById('bm-item').value = ""; document.getElementById('bm-item').focus();
-      }
-      
-      function runBatchSubmit() {
-         var loc = getLocStr('bm-loc', 'bm-shelf'); if(!loc || batchIds.length === 0) return showModal("Error", "Missing Location or Items to Move", "red");
-         showLoading();
-         apiCall("updateBatchLocation", { batchIds: batchIds, loc: loc }).then(function(res){
-            hideLoading();
-            if(res.error) return showModal("Error", res.error, "red");
-            showModal("Success", "Moved "+res.count+" Items", "green"); batchIds=[]; document.getElementById('bm-list').innerHTML=""; searchBatchLocation(); 
-         });
-      }
-      
-      function runBatchClear() {
-         var loc = getLocStr('bm-loc', 'bm-shelf'); if(!loc) return;
-         if(confirm("Clear all items from "+loc+"?")) {
-            showLoading();
-            apiCall("clearItemsFromLocation", { loc: loc }).then(function(res){ 
-                hideLoading(); 
-                if(res.error) return showModal("Error", res.error, "red");
-                showModal("Cleared", res.clearedCount+" items removed from location.", "green"); searchBatchLocation(); 
-            });
-         }
-      }
-
-      function showModal(title, msg, colorHex) {
-         var overlay = document.getElementById('modal-overlay'); var box = document.getElementById('modal-box-content');
-         var c = (colorHex === "red") ? "#dc3545" : "#198754"; var icon = (colorHex === "red") ? "⚠" : "✔";
-         box.innerHTML = `<h2 style="color:${c}; margin-bottom:10px; font-size:3rem;">${icon}</h2><h3 class="fw-bold">${title}</h3><p class="mb-4">${msg}</p><button class="btn btn-outline-light w-100" onclick="closeModal()">Close</button>`;
-         box.style.borderColor = c; overlay.classList.remove('hidden');
-      }
+      function searchBatchLocation() { var loc = getLocStr('bm-loc', 'bm-shelf'); if(!loc) return; document.getElementById('batch-actions').classList.remove('hidden'); document.getElementById('batch-loc-header').innerText = "Location: " + loc; document.getElementById('batch-current-list').innerHTML = "<div class='text-muted p-2'>Loading location data...</div>"; document.getElementById('batch-current-list').classList.remove('hidden'); apiCall("getLocationInventory", { loc: loc }).then(function(res){ if(res.items && res.items.length > 0) { var h = ""; res.items.forEach(function(i, idx){ var img = i.image || "https://drive.google.com/thumbnail?id=1QKFdyVCLY4vFeqyhJSmmv_mqa__Ydex1&sz=w1000"; h += "<div class='contract-card status-green'><div class='d-flex justify-content-between align-items-center'><div><strong>"+i.id+"</strong><br><span style='font-size:0.8rem;'>"+i.title+"</span></div><div><button class='btn btn-sm btn-outline-light' onclick='toggleInlineImg(\"batch-img-"+idx+"\")'>📷</button></div></div><img id='batch-img-"+idx+"' src='"+img+"' class='hidden' style='width:100%; border-radius:8px; margin-top:10px; max-height:200px; object-fit:contain;'></div>"; }); document.getElementById('batch-current-list').innerHTML = h; } else { document.getElementById('batch-current-list').innerHTML = "<div class='text-muted p-2'>Location is empty.</div>"; } }); }
+      function addBatch() { var id = document.getElementById('bm-item').value; if(!id) return; if(batchIds.indexOf(id) === -1) { batchIds.push(id); document.getElementById('bm-list').innerHTML = batchIds.map(function(i){ return "<div class='batch-item fw-bold'><span>"+i+"</span></div>" }).join(''); } document.getElementById('bm-item').value = ""; document.getElementById('bm-item').focus(); }
+      function runBatchSubmit() { var loc = getLocStr('bm-loc', 'bm-shelf'); if(!loc || batchIds.length === 0) return showModal("Error", "Missing Location or Items to Move", "red"); showLoading(); apiCall("updateBatchLocation", { batchIds: batchIds, loc: loc }).then(function(res){ hideLoading(); if(res.error) return showModal("Error", res.error, "red"); showModal("Success", "Moved "+res.count+" Items", "green"); batchIds=[]; document.getElementById('bm-list').innerHTML=""; searchBatchLocation(); }); }
+      function runBatchClear() { var loc = getLocStr('bm-loc', 'bm-shelf'); if(!loc) return; if(confirm("Clear all items from "+loc+"?")) { showLoading(); apiCall("clearItemsFromLocation", { loc: loc }).then(function(res){ hideLoading(); if(res.error) return showModal("Error", res.error, "red"); showModal("Cleared", res.clearedCount+" items removed from location.", "green"); searchBatchLocation(); }); } }
+      function showModal(title, msg, colorHex) { var overlay = document.getElementById('modal-overlay'); var box = document.getElementById('modal-box-content'); var c = (colorHex === "red") ? "#dc3545" : "#198754"; var icon = (colorHex === "red") ? "⚠" : "✔"; box.innerHTML = `<h2 style="color:${c}; margin-bottom:10px; font-size:3rem;">${icon}</h2><h3 class="fw-bold">${title}</h3><p class="mb-4">${msg}</p><button class="btn btn-outline-light w-100" onclick="closeModal()">Close</button>`; box.style.borderColor = c; overlay.classList.remove('hidden'); }
       function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
     </script>
   </body>
