@@ -107,18 +107,18 @@
                <button class="btn btn-primary" onclick="runSingleSearch()">Search</button>
             </div>
 
-<div id="res-single" class="hidden">
+            <div id="res-single" class="hidden">
                <div class="text-center mb-2"><span id="badge-source" class="badge-master">Loading...</span></div>
                 
-               <img id="img-main" src="">
-               <div class="info-box"><div class="info-label">Inventory #</div><div class="info-value" id="val-id"></div></div>
-               <div class="info-box mb-3"><div class="info-label">Item Title</div><div class="info-value" id="val-title"></div></div>
-
                <div class="d-flex gap-2 mb-3">
                   <button class="btn btn-sm btn-gold flex-grow-1 fw-bold" id="tab-link-inv" onclick="showSub('inv')">Inventory</button>
                   <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-ship" onclick="showSub('ship')">Shipping</button>
                   <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-hist" onclick="showSub('hist')">History</button>
                </div>
+
+               <img id="img-main" src="">
+               <div class="info-box"><div class="info-label">Inventory #</div><div class="info-value" id="val-id"></div></div>
+               <div class="info-box mb-3"><div class="info-label">Item Title</div><div class="info-value" id="val-title"></div></div>
 
                <div id="sub-inv">
                   <div class="info-box"><div class="info-label">Auction Date</div><div class="info-value" id="val-date"></div></div>
@@ -165,8 +165,7 @@
                <div id="sub-hist" class="hidden"><div id="list-hist"></div></div>
                <hr class="border-secondary mt-4"><button class="btn btn-outline-light w-100" onclick="resetLookup()">Scan Next Item</button>
             </div>
-
-         <div id="ui-contract" class="hidden">
+         </div> <div id="ui-contract" class="hidden">
             <div class="d-flex justify-content-between align-items-center mb-2">
                <h6 class="text-gold m-0" id="contract-title-header">Contract Lookup</h6>
                <button class="btn btn-sm btn-outline-light" onclick="resetContract()">Reset ↻</button>
@@ -257,13 +256,13 @@
       // ==========================================
       const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz6GumWtCKBV9aCU_EnR1-EdFzl6FA-LOFJg_PE3e2GasP9efRKOyQ8IR7-XkzMiw72/exec";
 
-     async function apiCall(actionName, dataObj) {
+      async function apiCall(actionName, dataObj) {
         try {
           let response = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
-            redirect: "follow", // CRITICAL: Tells the browser to follow Google's security redirect
+            redirect: "follow", 
             headers: {
-              "Content-Type": "text/plain;charset=utf-8" // Bypasses strict CORS preflight blocks
+              "Content-Type": "text/plain;charset=utf-8" 
             },
             body: JSON.stringify({ action: actionName, data: dataObj })
           });
@@ -278,7 +277,7 @@
       var currentSingle = null;
       var contractItems = [];
       var batchIds = [];
-      var html5QrCode; // New scanner engine variable
+      var html5QrCode; 
 
       function showLoading() {
          var box = document.getElementById('modal-box-content');
@@ -328,22 +327,14 @@
          html5QrCode.start(
              { facingMode: "environment" },
              {
-                 fps: 15, // Faster scan rate
+                 fps: 10, // Slower FPS gives auto-focus more time to lock on
                  qrbox: function(viewfinderWidth, viewfinderHeight) {
-                     // Wider rectangle optimized for 1D barcodes
-                     return { width: viewfinderWidth * 0.9, height: viewfinderHeight * 0.35 };
-                 },
-                 // Explicitly hunt for standard inventory barcodes
-                 formatsToSupport: [
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.QR_CODE
-                 ]
+                     // Tall and wide box so it never clips a barcode
+                     return { width: viewfinderWidth * 0.95, height: viewfinderHeight * 0.5 };
+                 }
+                 // Removed strict formats filter so it reads literally everything natively
              },
              function(decodedText, decodedResult) {
-                 // Scan Successful!
                  onScan(decodedText);
              },
              function(errorMessage) {
@@ -410,6 +401,11 @@
                document.getElementById('edit-header').innerText = "Master Log Data"; document.getElementById('edit-header').className = "text-primary mb-3";
                document.getElementById('grp-pending').classList.add('hidden'); document.getElementById('grp-master').classList.remove('hidden');
                document.getElementById('missing-alert').classList.add('hidden');
+               
+               // Show Shipping & History tabs
+               document.getElementById('tab-link-ship').classList.remove('hidden');
+               document.getElementById('tab-link-hist').classList.remove('hidden');
+
                locInput.value = data.location; document.getElementById('edit-notes').value = data.notes;
                document.getElementById('btn-save-single').innerText = "SAVE MASTER DATA";
                document.getElementById('btn-save-single').className = "btn btn-success w-100 fw-bold";
@@ -417,10 +413,15 @@
                document.getElementById('badge-source').innerText = "PENDING LOG"; document.getElementById('badge-source').className = "badge-pending";
                document.getElementById('edit-header').innerText = "Check In (Pending)"; document.getElementById('edit-header').className = "text-warning mb-3";
                document.getElementById('grp-pending').classList.remove('hidden'); document.getElementById('grp-master').classList.add('hidden');
-                
+               
+               // Hide Shipping & History tabs for Pending Log items
+               document.getElementById('tab-link-ship').classList.add('hidden');
+               document.getElementById('tab-link-hist').classList.add('hidden');
+               showSub('inv'); // Force it back to the inventory tab if they were stuck on another
+               
                locInput.value = data.location; document.getElementById('edit-freight').value = data.freight;
                document.getElementById('edit-arrival').value = data.arrival; document.getElementById('edit-initials').value = data.initials;
-                
+               
                if(data.missingHeaders && data.missingHeaders.length > 0) {
                   document.getElementById('missing-alert').innerText = "Missing Info:\n• " + data.missingHeaders.join("\n• ");
                   document.getElementById('missing-alert').classList.remove('hidden');
@@ -467,11 +468,9 @@
                hideLoading();
                if(res.success) { 
                   if(isLocked) {
-                     // Step 1 Complete: Auto-reload the item to unlock the initials box
                      showModal("Info Saved", "Required fields updated! You can now sign and check in.", "green");
                      runSingleSearch(); 
                   } else {
-                     // Step 2 Complete: Final Check-in
                      showModal("Checked In!", "Item updated successfully.", "green"); 
                      resetLookup(); 
                   }
