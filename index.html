@@ -110,7 +110,7 @@
             <div id="res-single" class="hidden">
                <div class="text-center mb-2"><span id="badge-source" class="badge-master">Loading...</span></div>
                 
-               <div class="d-flex gap-2 mb-3">
+               <div id="tab-container" class="d-flex gap-2 mb-3">
                   <button class="btn btn-sm btn-gold flex-grow-1 fw-bold" id="tab-link-inv" onclick="showSub('inv')">Inventory</button>
                   <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-ship" onclick="showSub('ship')">Shipping</button>
                   <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-hist" onclick="showSub('hist')">History</button>
@@ -317,20 +317,27 @@
          ['inv','ship','hist'].forEach(s => { 
             document.getElementById('sub-'+s).classList.add('hidden');
             let btn = document.getElementById('tab-link-'+s);
-            btn.classList.remove('btn-gold');
-            btn.classList.add('btn-outline-light');
+            if(btn) {
+                btn.classList.remove('btn-gold');
+                btn.classList.add('btn-outline-light');
+            }
          });
          
          document.getElementById('sub-'+sub).classList.remove('hidden');
          let activeBtn = document.getElementById('tab-link-'+sub);
-         activeBtn.classList.remove('btn-outline-light');
-         activeBtn.classList.add('btn-gold');
+         if(activeBtn) {
+             activeBtn.classList.remove('btn-outline-light');
+             activeBtn.classList.add('btn-gold');
+         }
          
-         // Fix Bug 2: Hide core info ONLY when viewing the History tab
-         if (sub === 'hist') {
-            document.getElementById('core-item-info').classList.add('hidden');
-         } else {
-            document.getElementById('core-item-info').classList.remove('hidden');
+         // Hides the core info (Image, Title, Inv #) strictly when viewing the History Tab
+         var coreInfo = document.getElementById('core-item-info');
+         if(coreInfo) {
+             if (sub === 'hist') {
+                coreInfo.classList.add('hidden');
+             } else {
+                coreInfo.classList.remove('hidden');
+             }
          }
       }
 
@@ -405,6 +412,10 @@
             hideLoading();
             if(data.error) return showModal("Not Found", data.error, "red");
             currentSingle = data;
+            
+            // Force interface to default back to Inventory tab to reset layouts
+            showSub('inv'); 
+            
             document.getElementById('res-single').classList.remove('hidden');
             
             var fallback = "https://drive.google.com/thumbnail?id=1QKFdyVCLY4vFeqyhJSmmv_mqa__Ydex1&sz=w1000";
@@ -424,9 +435,8 @@
                document.getElementById('grp-pending').classList.add('hidden'); document.getElementById('grp-master').classList.remove('hidden');
                document.getElementById('missing-alert').classList.add('hidden');
                
-               // Fix Bug 1: Unhide Shipping & History tabs for Master Log items
-               document.getElementById('tab-link-ship').classList.remove('hidden');
-               document.getElementById('tab-link-hist').classList.remove('hidden');
+               // Show entire tab menu bar for Master Log items
+               document.getElementById('tab-container').classList.remove('hidden');
 
                locInput.value = data.location; document.getElementById('edit-notes').value = data.notes;
                document.getElementById('btn-save-single').innerText = "SAVE MASTER DATA";
@@ -436,9 +446,8 @@
                document.getElementById('edit-header').innerText = "Check In (Pending)"; document.getElementById('edit-header').className = "text-warning mb-3";
                document.getElementById('grp-pending').classList.remove('hidden'); document.getElementById('grp-master').classList.add('hidden');
                
-               // Fix Bug 1: Safely hide Shipping & History tabs for Pending Log items
-               document.getElementById('tab-link-ship').classList.add('hidden');
-               document.getElementById('tab-link-hist').classList.add('hidden');
+               // Hide the entire tab menu bar for Pending Log items (No clutter)
+               document.getElementById('tab-container').classList.add('hidden');
                
                locInput.value = data.location; document.getElementById('edit-freight').value = data.freight;
                document.getElementById('edit-arrival').value = data.arrival; document.getElementById('edit-initials').value = data.initials;
@@ -462,8 +471,6 @@
                data.history.forEach(function(h){ hList.innerHTML += "<div class='hist-item'><span class='hist-date'>"+h.date+"</span><br><span class='text-light'>"+h.action+":</span> <span class='text-muted'>"+h.oldLoc+" > "+h.newLoc+" ("+h.user+")</span></div>"; });
             } else { hList.innerHTML = "<div class='p-3 text-center text-muted'>No item history found.</div>"; }
             
-            // Force interface to default back to Inventory tab on every new scan
-            showSub('inv'); 
          });
       }
 
