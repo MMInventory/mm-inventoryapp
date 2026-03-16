@@ -107,9 +107,13 @@
                <button class="btn btn-primary" onclick="runSingleSearch()">Search</button>
             </div>
 
-            <div id="res-single" class="hidden">
+<div id="res-single" class="hidden">
                <div class="text-center mb-2"><span id="badge-source" class="badge-master">Loading...</span></div>
                 
+               <img id="img-main" src="">
+               <div class="info-box"><div class="info-label">Inventory #</div><div class="info-value" id="val-id"></div></div>
+               <div class="info-box mb-3"><div class="info-label">Item Title</div><div class="info-value" id="val-title"></div></div>
+
                <div class="d-flex gap-2 mb-3">
                   <button class="btn btn-sm btn-gold flex-grow-1 fw-bold" id="tab-link-inv" onclick="showSub('inv')">Inventory</button>
                   <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-ship" onclick="showSub('ship')">Shipping</button>
@@ -117,9 +121,6 @@
                </div>
 
                <div id="sub-inv">
-                  <img id="img-main" src="">
-                  <div class="info-box"><div class="info-label">Inventory #</div><div class="info-value" id="val-id"></div></div>
-                  <div class="info-box"><div class="info-label">Item Title</div><div class="info-value" id="val-title"></div></div>
                   <div class="info-box"><div class="info-label">Auction Date</div><div class="info-value" id="val-date"></div></div>
                   
                   <div class="p-3 border border-secondary rounded mb-3" style="background:#2b3035">
@@ -150,19 +151,20 @@
                         <textarea id="edit-notes" class="form-control form-control-dark mb-3" rows="2"></textarea>
                      </div>
 
-                     <button class="btn btn-success w-100" onclick="saveSingle()">Save / Check In</button>
+                     <button id="btn-save-single" class="btn btn-success w-100 fw-bold" onclick="saveSingle()">CHECK IN ITEM</button>
                   </div>
                </div>
 
                <div id="sub-ship" class="hidden">
+                  <div class="info-box"><div class="info-label">Location</div><div class="info-value" id="val-ship-loc"></div></div>
                   <div class="info-box"><div class="info-label">Dimensions</div><div class="info-value" id="val-dims"></div></div>
+                  <div class="info-box"><div class="info-label">Freight Required</div><div class="info-value" id="val-ship-freight"></div></div>
                   <div class="info-box"><div class="info-label">Notes</div><div class="info-value" id="val-notes"></div></div>
                </div>
 
                <div id="sub-hist" class="hidden"><div id="list-hist"></div></div>
                <hr class="border-secondary mt-4"><button class="btn btn-outline-light w-100" onclick="resetLookup()">Scan Next Item</button>
             </div>
-         </div>
 
          <div id="ui-contract" class="hidden">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -398,6 +400,10 @@
             document.getElementById('val-date').innerText = data.auctionDate; document.getElementById('val-dims').innerText = data.dimensions;
             document.getElementById('val-notes').innerText = data.notes;
             
+            // Populate Shipping Tab fields
+            document.getElementById('val-ship-loc').innerText = data.location || "None";
+            document.getElementById('val-ship-freight').innerText = data.freight || "None";
+            
             var locInput = document.getElementById('edit-loc');
             if(data.source === "MASTER") {
                document.getElementById('badge-source').innerText = "MASTER LOG"; document.getElementById('badge-source').className = "badge-master";
@@ -405,6 +411,8 @@
                document.getElementById('grp-pending').classList.add('hidden'); document.getElementById('grp-master').classList.remove('hidden');
                document.getElementById('missing-alert').classList.add('hidden');
                locInput.value = data.location; document.getElementById('edit-notes').value = data.notes;
+               document.getElementById('btn-save-single').innerText = "SAVE MASTER DATA";
+               document.getElementById('btn-save-single').className = "btn btn-success w-100 fw-bold";
             } else {
                document.getElementById('badge-source').innerText = "PENDING LOG"; document.getElementById('badge-source').className = "badge-pending";
                document.getElementById('edit-header').innerText = "Check In (Pending)"; document.getElementById('edit-header').className = "text-warning mb-3";
@@ -417,9 +425,15 @@
                   document.getElementById('missing-alert').innerText = "Missing Info:\n• " + data.missingHeaders.join("\n• ");
                   document.getElementById('missing-alert').classList.remove('hidden');
                   document.getElementById('edit-initials').disabled = true; document.getElementById('edit-initials').placeholder = "Locked";
+                  // DYNAMIC BUTTON: Step 1
+                  document.getElementById('btn-save-single').innerText = "SAVE MISSING INFO";
+                  document.getElementById('btn-save-single').className = "btn btn-primary w-100 fw-bold";
                } else {
                   document.getElementById('missing-alert').classList.add('hidden');
                   document.getElementById('edit-initials').disabled = false; document.getElementById('edit-initials').placeholder = "Required";
+                  // DYNAMIC BUTTON: Step 2
+                  document.getElementById('btn-save-single').innerText = "CHECK IN ITEM";
+                  document.getElementById('btn-save-single').className = "btn btn-success w-100 fw-bold";
                }
             }
             
@@ -443,11 +457,25 @@
          } else {
             var loc = document.getElementById('edit-loc').value; var frt = document.getElementById('edit-freight').value;
             var arr = document.getElementById('edit-arrival').value; var ini = document.getElementById('edit-initials').value;
-            if(!ini) { hideLoading(); return showModal("Error", "Initials Required", "red"); }
             
-            apiCall("updatePendingData", { id: currentSingle.id, loc: loc, frt: frt, arr: arr, ini: ini }).then(function(res){
+            // Check if the initials box is currently locked by the app
+            var isLocked = document.getElementById('edit-initials').disabled;
+            if(!isLocked && !ini) { hideLoading(); return showModal("Error", "Initials Required", "red"); }
+            
+            // If it is locked, we send a blank string for initials and save the rest
+            apiCall("updatePendingData", { id: currentSingle.id, loc: loc, frt: frt, arr: arr, ini: (isLocked ? "" : ini) }).then(function(res){
                hideLoading();
-               if(res.success) { showModal("Checked In!", "Item updated successfully.", "green"); resetLookup(); } 
+               if(res.success) { 
+                  if(isLocked) {
+                     // Step 1 Complete: Auto-reload the item to unlock the initials box
+                     showModal("Info Saved", "Required fields updated! You can now sign and check in.", "green");
+                     runSingleSearch(); 
+                  } else {
+                     // Step 2 Complete: Final Check-in
+                     showModal("Checked In!", "Item updated successfully.", "green"); 
+                     resetLookup(); 
+                  }
+               } 
                else { showModal("Error", res.error || res.message, "red"); }
             });
          }
