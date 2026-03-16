@@ -116,9 +116,11 @@
                   <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-hist" onclick="showSub('hist')">History</button>
                </div>
 
-               <img id="img-main" src="">
-               <div class="info-box"><div class="info-label">Inventory #</div><div class="info-value" id="val-id"></div></div>
-               <div class="info-box mb-3"><div class="info-label">Item Title</div><div class="info-value" id="val-title"></div></div>
+               <div id="core-item-info">
+                  <img id="img-main" src="">
+                  <div class="info-box"><div class="info-label">Inventory #</div><div class="info-value" id="val-id"></div></div>
+                  <div class="info-box mb-3"><div class="info-label">Item Title</div><div class="info-value" id="val-title"></div></div>
+               </div>
 
                <div id="sub-inv">
                   <div class="info-box"><div class="info-label">Auction Date</div><div class="info-value" id="val-date"></div></div>
@@ -162,10 +164,16 @@
                   <div class="info-box"><div class="info-label">Notes</div><div class="info-value" id="val-notes"></div></div>
                </div>
 
-               <div id="sub-hist" class="hidden"><div id="list-hist"></div></div>
-               <hr class="border-secondary mt-4"><button class="btn btn-outline-light w-100" onclick="resetLookup()">Scan Next Item</button>
+               <div id="sub-hist" class="hidden">
+                  <div id="list-hist"></div>
+               </div>
+               
+               <hr class="border-secondary mt-4">
+               <button class="btn btn-outline-light w-100" onclick="resetLookup()">Scan Next Item</button>
             </div>
-         </div> <div id="ui-contract" class="hidden">
+         </div>
+
+         <div id="ui-contract" class="hidden">
             <div class="d-flex justify-content-between align-items-center mb-2">
                <h6 class="text-gold m-0" id="contract-title-header">Contract Lookup</h6>
                <button class="btn btn-sm btn-outline-light" onclick="resetContract()">Reset ↻</button>
@@ -305,10 +313,25 @@
       }
 
       function showSub(sub) {
-         ['inv','ship','hist'].forEach(s => document.getElementById('sub-'+s).classList.add('hidden'));
+         // Safely toggle tabs without overwriting the 'hidden' class on the buttons themselves
+         ['inv','ship','hist'].forEach(s => { 
+            document.getElementById('sub-'+s).classList.add('hidden');
+            let btn = document.getElementById('tab-link-'+s);
+            btn.classList.remove('btn-gold');
+            btn.classList.add('btn-outline-light');
+         });
+         
          document.getElementById('sub-'+sub).classList.remove('hidden');
-         ['inv','ship','hist'].forEach(s => { document.getElementById('tab-link-'+s).className = 'btn btn-sm btn-outline-light flex-grow-1 fw-bold'; });
-         document.getElementById('tab-link-'+sub).className = 'btn btn-sm btn-gold flex-grow-1 fw-bold';
+         let activeBtn = document.getElementById('tab-link-'+sub);
+         activeBtn.classList.remove('btn-outline-light');
+         activeBtn.classList.add('btn-gold');
+         
+         // Fix Bug 2: Hide core info ONLY when viewing the History tab
+         if (sub === 'hist') {
+            document.getElementById('core-item-info').classList.add('hidden');
+         } else {
+            document.getElementById('core-item-info').classList.remove('hidden');
+         }
       }
 
       function clearField(id) { var el = document.getElementById(id); if(el) { el.value = ""; el.focus(); } }
@@ -332,7 +355,6 @@
                      // Tall and wide box so it never clips a barcode
                      return { width: viewfinderWidth * 0.95, height: viewfinderHeight * 0.5 };
                  }
-                 // Removed strict formats filter so it reads literally everything natively
              },
              function(decodedText, decodedResult) {
                  onScan(decodedText);
@@ -402,7 +424,7 @@
                document.getElementById('grp-pending').classList.add('hidden'); document.getElementById('grp-master').classList.remove('hidden');
                document.getElementById('missing-alert').classList.add('hidden');
                
-               // Show Shipping & History tabs
+               // Fix Bug 1: Unhide Shipping & History tabs for Master Log items
                document.getElementById('tab-link-ship').classList.remove('hidden');
                document.getElementById('tab-link-hist').classList.remove('hidden');
 
@@ -414,10 +436,9 @@
                document.getElementById('edit-header').innerText = "Check In (Pending)"; document.getElementById('edit-header').className = "text-warning mb-3";
                document.getElementById('grp-pending').classList.remove('hidden'); document.getElementById('grp-master').classList.add('hidden');
                
-               // Hide Shipping & History tabs for Pending Log items
+               // Fix Bug 1: Safely hide Shipping & History tabs for Pending Log items
                document.getElementById('tab-link-ship').classList.add('hidden');
                document.getElementById('tab-link-hist').classList.add('hidden');
-               showSub('inv'); // Force it back to the inventory tab if they were stuck on another
                
                locInput.value = data.location; document.getElementById('edit-freight').value = data.freight;
                document.getElementById('edit-arrival').value = data.arrival; document.getElementById('edit-initials').value = data.initials;
@@ -426,13 +447,11 @@
                   document.getElementById('missing-alert').innerText = "Missing Info:\n• " + data.missingHeaders.join("\n• ");
                   document.getElementById('missing-alert').classList.remove('hidden');
                   document.getElementById('edit-initials').disabled = true; document.getElementById('edit-initials').placeholder = "Locked";
-                  // DYNAMIC BUTTON: Step 1
                   document.getElementById('btn-save-single').innerText = "SAVE MISSING INFO";
                   document.getElementById('btn-save-single').className = "btn btn-primary w-100 fw-bold";
                } else {
                   document.getElementById('missing-alert').classList.add('hidden');
                   document.getElementById('edit-initials').disabled = false; document.getElementById('edit-initials').placeholder = "Required";
-                  // DYNAMIC BUTTON: Step 2
                   document.getElementById('btn-save-single').innerText = "CHECK IN ITEM";
                   document.getElementById('btn-save-single').className = "btn btn-success w-100 fw-bold";
                }
@@ -442,6 +461,9 @@
             if(data.history && data.history.length > 0) {
                data.history.forEach(function(h){ hList.innerHTML += "<div class='hist-item'><span class='hist-date'>"+h.date+"</span><br><span class='text-light'>"+h.action+":</span> <span class='text-muted'>"+h.oldLoc+" > "+h.newLoc+" ("+h.user+")</span></div>"; });
             } else { hList.innerHTML = "<div class='p-3 text-center text-muted'>No item history found.</div>"; }
+            
+            // Force interface to default back to Inventory tab on every new scan
+            showSub('inv'); 
          });
       }
 
@@ -459,11 +481,9 @@
             var loc = document.getElementById('edit-loc').value; var frt = document.getElementById('edit-freight').value;
             var arr = document.getElementById('edit-arrival').value; var ini = document.getElementById('edit-initials').value;
             
-            // Check if the initials box is currently locked by the app
             var isLocked = document.getElementById('edit-initials').disabled;
             if(!isLocked && !ini) { hideLoading(); return showModal("Error", "Initials Required", "red"); }
             
-            // If it is locked, we send a blank string for initials and save the rest
             apiCall("updatePendingData", { id: currentSingle.id, loc: loc, frt: frt, arr: arr, ini: (isLocked ? "" : ini) }).then(function(res){
                hideLoading();
                if(res.success) { 
