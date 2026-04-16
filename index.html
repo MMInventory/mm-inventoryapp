@@ -11,13 +11,13 @@
     
     <style>
       /* MOBILE SCROLL LOCKS ADDED HERE */
-      html, body { overscroll-behavior-y: none; } /* Stops the whole app from bouncing or pull-to-refresh jumping */
+      html, body { overscroll-behavior-y: none; } 
       body { background-color: #212529; color: #e0e0e0; font-family: 'Montserrat', sans-serif; padding-bottom: 80px; }
       .app-container { max-width: 600px; margin: 0 auto; padding: 15px; }
       
-      .nav-pills { display: flex; gap: 5px; margin-bottom: 20px; }
-      .nav-item { flex-grow: 1; }
-      .nav-pills .nav-item:first-child { flex: 0 0 44%; } 
+      /* Updated to a 2x2 grid for 4 buttons to prevent squishing on mobile */
+      .nav-pills { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; padding: 0; list-style: none; }
+      .nav-item { width: 100%; }
       
       .nav-pills .nav-link { 
         color: #adb5bd; border: 1px solid #495057; border-radius: 6px; text-align: center;
@@ -57,16 +57,17 @@
       .hidden { display: none !important; }
       
       /* FIXED SCROLLING UI HERE */
-      #batch-list, #list-hist, #contract-list, #batch-current-list { 
-        max-height: 450px; /* Replaced the volatile 'vh' with a solid pixel height */
+      #batch-list, #list-hist, #contract-list, #batch-current-list, #tac-list-container { 
+        max-height: 450px; 
         overflow-y: auto; 
-        -webkit-overflow-scrolling: touch; /* Forces smooth momentum scrolling on iPhones */
-        overscroll-behavior-y: contain; /* Stops the background from jumping when you hit the bottom of the list */
+        -webkit-overflow-scrolling: touch; 
+        overscroll-behavior-y: contain; 
         background: #2b3035; 
         border: 1px solid #495057; 
         border-radius: 5px; 
         padding: 5px; 
       }
+      #tac-list-container { padding: 10px; } /* Slightly more padding for the cards */
       
       .hist-item { padding: 10px; border-bottom: 1px solid #495057; }
       .batch-item { padding: 8px 10px; border-bottom: 1px solid #495057; display: flex; justify-content: space-between; align-items:center; }
@@ -74,6 +75,7 @@
       .contract-card { background: #1a1d20; border: 1px solid #495057; border-radius: 8px; margin-bottom: 10px; padding: 10px; }
       .contract-card.status-red { border-left: 5px solid #dc3545; }
       .contract-card.status-green { border-left: 5px solid #198754; }
+      .contract-card.status-gold { border-left: 5px solid #dcb043; }
       .badge-missing { display: inline-block; background: #dc3545; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-right: 4px; margin-top: 4px; text-transform: uppercase; }
 
       #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; }
@@ -82,7 +84,6 @@
       .loader { border: 4px solid #f3f3f3; border-top: 4px solid #dcb043; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
       
-      /* html5-qrcode overrides for dark mode */
       #reader { background: #000; border-radius: 8px; overflow: hidden; border: none !important; }
       #reader video { object-fit: cover; }
     </style>
@@ -96,6 +97,7 @@
         <li class="nav-item"><a class="nav-link active" id="tab-lookup" onclick="switchMainTab('lookup')">Lookup</a></li>
         <li class="nav-item"><a class="nav-link" id="tab-quick" onclick="switchMainTab('quick')">Quick Move</a></li>
         <li class="nav-item"><a class="nav-link" id="tab-batch" onclick="switchMainTab('batch')">Batch Move</a></li>
+        <li class="nav-item"><a class="nav-link" id="tab-tac" onclick="switchMainTab('tac')">Pick List</a></li>
       </ul>
 
       <div id="scanner-wrapper" class="hidden mb-3 p-3 border border-secondary rounded" style="background:#1a1d20;">
@@ -122,7 +124,7 @@
 
             <div id="res-single" class="hidden">
                <div class="text-center mb-2"><span id="badge-source" class="badge-master">Loading...</span></div>
-                
+               
                <div id="tab-container" class="d-flex gap-2 mb-3">
                   <button class="btn btn-sm btn-gold flex-grow-1 fw-bold" id="tab-link-inv" onclick="showSub('inv')">Inventory</button>
                   <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold" id="tab-link-ship" onclick="showSub('ship')">Shipping</button>
@@ -141,14 +143,14 @@
                   <div class="p-3 border border-secondary rounded mb-3" style="background:#2b3035">
                      <h6 id="edit-header" class="text-primary mb-3">Edit Data</h6>
                      <div id="missing-alert" class="alert alert-danger p-2 small hidden"></div>
-                      
+                     
                      <label class="info-label">Location</label>
                      <div class="input-group mb-2">
                         <input type="text" id="edit-loc" class="form-control form-control-dark">
                         <button class="btn btn-outline-danger" onclick="clearField('edit-loc')">✕</button>
                         <button class="btn btn-outline-secondary" onclick="startScan('edit-loc')">📷</button>
                      </div>
-                      
+                     
                      <div id="grp-pending">
                         <label class="info-label">Freight Required</label>
                         <select id="edit-freight" class="form-select form-select-dark mb-2"><option value="">Select...</option><option value="Yes">Yes</option><option value="No">No</option></select>
@@ -160,7 +162,7 @@
                            <button class="btn btn-outline-danger" onclick="clearField('edit-initials')">✕</button>
                         </div>
                      </div>
-                      
+                     
                      <div id="grp-master" class="hidden">
                         <label class="info-label">Notes</label>
                         <textarea id="edit-notes" class="form-control form-control-dark mb-3" rows="2"></textarea>
@@ -266,6 +268,17 @@
             <button class="btn btn-outline-danger w-100" onclick="runBatchClear()">RESET LOCATION (CLEAR)</button>
          </div>
       </div>
+
+      <div id="view-tac" class="hidden">
+         <div class="d-flex justify-content-between align-items-center mb-3">
+             <h5 class="text-gold m-0">Warehouse Pick List</h5>
+             <button class="btn btn-sm btn-outline-light" onclick="fetchTacList()">Refresh ↻</button>
+         </div>
+         <div id="tac-list-container">
+             <div class='text-center mt-4 text-muted'>Click Refresh to load the pick list.</div>
+         </div>
+      </div>
+
     </div>
 
     <div id="modal-overlay" class="hidden modal-overlay"><div class="modal-box" id="modal-box-content"></div></div>
@@ -294,7 +307,19 @@
       function showLoading() { var box = document.getElementById('modal-box-content'); box.innerHTML = `<div class="loader"></div><h4 class="mt-3">Loading...</h4>`; box.style.borderColor = "#dcb043"; document.getElementById('modal-overlay').classList.remove('hidden'); }
       function hideLoading() { document.getElementById('modal-overlay').classList.add('hidden'); }
 
-      function switchMainTab(tabId) { stopScanner(); ['lookup','quick','batch'].forEach(t => { document.getElementById('view-'+t).classList.add('hidden'); document.getElementById('tab-'+t).classList.remove('active'); }); document.getElementById('view-'+tabId).classList.remove('hidden'); document.getElementById('tab-'+tabId).classList.add('active'); }
+      function switchMainTab(tabId) { 
+          stopScanner(); 
+          ['lookup','quick','batch','tac'].forEach(t => { 
+              document.getElementById('view-'+t).classList.add('hidden'); 
+              document.getElementById('tab-'+t).classList.remove('active'); 
+          }); 
+          document.getElementById('view-'+tabId).classList.remove('hidden'); 
+          document.getElementById('tab-'+tabId).classList.add('active'); 
+          
+          if(tabId === 'tac') {
+              fetchTacList();
+          }
+      }
 
       function switchLookupMode(mode) { stopScanner(); if(mode === 'single') { document.getElementById('ui-single').classList.remove('hidden'); document.getElementById('ui-contract').classList.add('hidden'); document.getElementById('mode-single').classList.add('active'); document.getElementById('mode-contract').classList.remove('active'); } else { document.getElementById('ui-single').classList.add('hidden'); document.getElementById('ui-contract').classList.remove('hidden'); document.getElementById('mode-single').classList.remove('active'); document.getElementById('mode-contract').classList.add('active'); } }
 
@@ -448,6 +473,72 @@
       function runBatchClear() { var loc = getLocStr('bm-loc', 'bm-shelf'); if(!loc) return; if(confirm("Clear all items from "+loc+"?")) { showLoading(); apiCall("clearItemsFromLocation", { loc: loc }).then(function(res){ hideLoading(); if(res.error) return showModal("Error", res.error, "red"); showModal("Cleared", res.clearedCount+" items removed from location.", "green"); searchBatchLocation(); }); } }
       function showModal(title, msg, colorHex) { var overlay = document.getElementById('modal-overlay'); var box = document.getElementById('modal-box-content'); var c = (colorHex === "red") ? "#dc3545" : "#198754"; var icon = (colorHex === "red") ? "⚠" : "✔"; box.innerHTML = `<h2 style="color:${c}; margin-bottom:10px; font-size:3rem;">${icon}</h2><h3 class="fw-bold">${title}</h3><p class="mb-4">${msg}</p><button class="btn btn-outline-light w-100" onclick="closeModal()">Close</button>`; box.style.borderColor = c; overlay.classList.remove('hidden'); }
       function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+
+      // --- NEW TAC LIST FUNCTIONS ---
+      function fetchTacList() {
+          document.getElementById('tac-list-container').innerHTML = "<div class='text-center mt-4'><div class='loader'></div><h5 class='mt-3'>Loading Pick List...</h5></div>";
+          apiCall("getWarehouseTacList", {}).then(res => {
+              if(res.error) {
+                  document.getElementById('tac-list-container').innerHTML = `<div class='alert alert-danger'>${res.error}</div>`;
+              } else {
+                  renderTacList(res);
+              }
+          });
+      }
+
+      function renderTacList(data) {
+          let html = "";
+          if(data.length === 0) {
+              html = "<div class='text-center text-muted mt-4'>No items found on the Pick List.</div>";
+          } else {
+              data.forEach(item => {
+                  let photoHtml = item.photo ? 
+                      `<button class="btn btn-sm btn-outline-info w-100 mt-2" onclick="toggleTacPhoto('${item.inv}')">Toggle Photo</button>
+                       <img id="tac-photo-${item.inv}" src="${item.photo}" class="hidden" style="width:100%; border-radius:8px; margin-top:10px; max-height:200px; object-fit:contain;">` 
+                      : `<div class="text-danger small mt-2 fw-bold text-center border border-danger p-1 rounded" style="background:#2b3035">No Photo Found in Master Log</div>`;
+                  
+                  let borderClass = item.status ? "status-green" : "status-gold"; // Green if checked off, Gold if pending
+                  
+                  html += `
+                  <div class="contract-card ${borderClass}">
+                      <h6 class="text-white fw-bold">${item.inv} - ${item.title}</h6>
+                      <div class="small text-muted mb-3">Location: <span class="text-gold fw-bold">${item.location || 'Unknown'}</span></div>
+                      
+                      <div class="input-group input-group-sm mb-2">
+                          <span class="input-group-text bg-dark text-light border-secondary">On Table</span>
+                          <select class="form-select form-select-dark border-secondary" onchange="updTacStatus(${item.rowNumber}, this.value)">
+                              <option value="" ${item.status===''?'selected':''}>Select...</option>
+                              <option value="Yes" ${item.status==='Yes'?'selected':''}>Yes</option>
+                              <option value="No" ${item.status==='No'?'selected':''}>No</option>
+                              <option value="Red Cart" ${item.status==='Red Cart'?'selected':''}>Red Cart</option>
+                              <option value="Bulk" ${item.status==='Bulk'?'selected':''}>Bulk</option>
+                          </select>
+                      </div>
+                      ${photoHtml}
+                  </div>`;
+              });
+          }
+          document.getElementById('tac-list-container').innerHTML = html;
+      }
+
+      function toggleTacPhoto(inv) {
+          let el = document.getElementById('tac-photo-' + inv);
+          if(el.classList.contains('hidden')) el.classList.remove('hidden');
+          else el.classList.add('hidden');
+      }
+
+      function updTacStatus(row, status) {
+          showLoading();
+          apiCall("updateTacStatus", {row: row, status: status}).then(res => {
+              hideLoading();
+              if(res.error) {
+                  showModal("Update Failed", res.error, "red");
+              } else {
+                  // Re-fetch the list so the card colors update perfectly
+                  fetchTacList(); 
+              }
+          });
+      }
     </script>
   </body>
 </html>
