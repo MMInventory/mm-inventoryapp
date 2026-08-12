@@ -475,6 +475,7 @@
       function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
 
       // --- NEW TAC LIST FUNCTIONS ---
+
       function fetchTacList() {
           document.getElementById('tac-list-container').innerHTML = "<div class='text-center mt-4'><div class='loader'></div><h5 class='mt-3'>Loading Pick List...</h5></div>";
           apiCall("getWarehouseTacList", {}).then(res => {
@@ -497,16 +498,17 @@
                        <img id="tac-photo-${item.inv}" src="${item.photo}" class="hidden" style="width:100%; border-radius:8px; margin-top:10px; max-height:200px; object-fit:contain;">` 
                       : `<div class="text-danger small mt-2 fw-bold text-center border border-danger p-1 rounded" style="background:#2b3035">No Photo Found in Master Log</div>`;
                   
-                  let borderClass = item.status ? "status-green" : "status-gold"; // Green if checked off, Gold if pending
+                  let borderClass = item.status ? "status-green" : "status-gold"; 
                   
+                  // ADDED ID to the card, changed Location text to white, passed Item ID to updTacStatus
                   html += `
-                  <div class="contract-card ${borderClass}">
+                  <div id="tac-card-${item.inv}" class="contract-card ${borderClass}">
                       <h6 class="text-white fw-bold">${item.inv} - ${item.title}</h6>
-                      <div class="small text-muted mb-3">Location: <span class="text-gold fw-bold">${item.location || 'Unknown'}</span></div>
+                      <div class="small text-muted mb-3">Location: <span class="text-white fw-bold">${item.location || 'Unknown'}</span></div>
                       
                       <div class="input-group input-group-sm mb-2">
                           <span class="input-group-text bg-dark text-light border-secondary">On Table</span>
-                          <select class="form-select form-select-dark border-secondary" onchange="updTacStatus(${item.rowNumber}, this.value)">
+                          <select class="form-select form-select-dark border-secondary" onchange="updTacStatus('${item.inv}', ${item.rowNumber}, this.value)">
                               <option value="" ${item.status===''?'selected':''}>Select...</option>
                               <option value="Yes" ${item.status==='Yes'?'selected':''}>Yes</option>
                               <option value="No" ${item.status==='No'?'selected':''}>No</option>
@@ -527,15 +529,24 @@
           else el.classList.add('hidden');
       }
 
-      function updTacStatus(row, status) {
-          showLoading();
+      function updTacStatus(inv, row, status) {
+          // 1. INSTANT VISUAL FEEDBACK (No Loading Screens!)
+          let card = document.getElementById('tac-card-' + inv);
+          if (card) {
+              card.classList.remove('status-gold', 'status-green');
+              if (status !== "") card.classList.add('status-green'); // Checked off
+              else card.classList.add('status-gold'); // Reset to pending
+          }
+
+          // 2. SILENT BACKGROUND SAVE 
           apiCall("updateTacStatus", {row: row, status: status}).then(res => {
-              hideLoading();
               if(res.error) {
                   showModal("Update Failed", res.error, "red");
-              } else {
-                  // Re-fetch the list so the card colors update perfectly
-                  fetchTacList(); 
+                  // If the save fails, change the color back so the user knows
+                  if (card) {
+                      card.classList.remove('status-green');
+                      card.classList.add('status-gold');
+                  }
               }
           });
       }
