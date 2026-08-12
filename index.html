@@ -558,7 +558,7 @@
           });
       }
 
-      function removeFromTac(inv) {
+function removeFromTac(inv) {
           if(!confirm("Remove Item " + inv + " from the Pick List entirely?")) return;
           
           let card = document.getElementById('tac-card-' + inv);
@@ -566,9 +566,8 @@
           
           apiCall("removeTacItem", {inv: inv}).then(res => {
               if(res.error) {
-                  // If it's a network glitch, warn the user but bring the card back.
-                  // Because of our backend fix, clicking 'X' a second time will instantly clear it.
-                  showModal("Network Blip", "Connection interrupted. If the item comes back, just click 'X' one more time to clear it.", "red");
+                  // This will now show the EXACT error from Google instead of "Network blip"
+                  showModal("Delete Failed", res.error, "red");
                   if(card) card.style.display = 'block'; 
               }
           });
