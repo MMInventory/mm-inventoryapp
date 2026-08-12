@@ -552,16 +552,18 @@
       function removeFromTac(inv) {
           if(!confirm("Remove Item " + inv + " from the Pick List entirely?")) return;
           
-          // INSTANT VISUAL FEEDBACK: Hide the card immediately
           let card = document.getElementById('tac-card-' + inv);
           if(card) card.style.display = 'none'; 
           
-          // SILENT BACKGROUND DELETE
           apiCall("removeTacItem", {inv: inv}).then(res => {
               if(res.error) {
-                  showModal("Delete Failed", res.error, "red");
-                  // Bring the card back if the Google server failed to delete it
+                  // If it's a network glitch, warn the user but bring the card back.
+                  // Because of our backend fix, clicking 'X' a second time will instantly clear it.
+                  showModal("Network Blip", "Connection interrupted. If the item comes back, just click 'X' one more time to clear it.", "red");
                   if(card) card.style.display = 'block'; 
+              }
+          });
+      }
               }
           });
       }
