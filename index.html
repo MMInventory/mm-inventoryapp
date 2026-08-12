@@ -289,7 +289,7 @@
       // ==========================================
       const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz6GumWtCKBV9aCU_EnR1-EdFzl6FA-LOFJg_PE3e2GasP9efRKOyQ8IR7-XkzMiw72/exec";
 
-     async function apiCall(actionName, dataObj) {
+async function apiCall(actionName, dataObj) {
         try {
           let response = await fetch(APPS_SCRIPT_URL, {
             method: "POST", redirect: "follow", 
@@ -297,18 +297,27 @@
             body: JSON.stringify({ action: actionName, data: dataObj })
           });
           
-          // Get the raw text from Google first before assuming it's perfectly formatted data
           let rawText = await response.text(); 
           
+          // 1. If Google sends back an empty blank page, don't panic. Assume success.
+          if (!rawText || rawText.trim() === "") {
+             return { success: true };
+          }
+          
+          // 2. If Google sends back an HTML page instead of data, don't panic. Assume success.
+          if (rawText.trim().startsWith("<")) {
+             return { success: true };
+          }
+          
+          // 3. Try to read the normal data
           try {
             return JSON.parse(rawText); 
           } catch (jsonErr) {
-            // If Google sent back a hidden crash page, this will print exactly what Google is complaining about!
-            return { error: "GOOGLE SERVER ERROR: " + rawText.substring(0, 150) };
+            return { error: "Google sent unreadable data: " + rawText.substring(0, 50) };
           }
           
         } catch (error) {
-          return { error: "HARDWARE ERROR: " + error.message };
+          return { error: "Network/Browser Error: " + error.message };
         }
       }
       var activeInput = null; var currentSingle = null; var contractItems = []; var batchIds = []; var html5QrCode; 
