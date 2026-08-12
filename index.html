@@ -289,19 +289,28 @@
       // ==========================================
       const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz6GumWtCKBV9aCU_EnR1-EdFzl6FA-LOFJg_PE3e2GasP9efRKOyQ8IR7-XkzMiw72/exec";
 
-      async function apiCall(actionName, dataObj) {
+     async function apiCall(actionName, dataObj) {
         try {
           let response = await fetch(APPS_SCRIPT_URL, {
             method: "POST", redirect: "follow", 
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ action: actionName, data: dataObj })
           });
-          return await response.json();
+          
+          // Get the raw text from Google first before assuming it's perfectly formatted data
+          let rawText = await response.text(); 
+          
+          try {
+            return JSON.parse(rawText); 
+          } catch (jsonErr) {
+            // If Google sent back a hidden crash page, this will print exactly what Google is complaining about!
+            return { error: "GOOGLE SERVER ERROR: " + rawText.substring(0, 150) };
+          }
+          
         } catch (error) {
-          return { error: "Network Error: Could not reach database. Check your Web App URL." };
+          return { error: "HARDWARE ERROR: " + error.message };
         }
       }
-
       var activeInput = null; var currentSingle = null; var contractItems = []; var batchIds = []; var html5QrCode; 
 
       function showLoading() { var box = document.getElementById('modal-box-content'); box.innerHTML = `<div class="loader"></div><h4 class="mt-3">Loading...</h4>`; box.style.borderColor = "#dcb043"; document.getElementById('modal-overlay').classList.remove('hidden'); }
