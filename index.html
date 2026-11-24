@@ -84,8 +84,9 @@
       .loader { border: 4px solid #f3f3f3; border-top: 4px solid #dcb043; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
       
-      #reader { background: #000; border-radius: 8px; overflow: hidden; border: none !important; }
-      #reader video { object-fit: cover; }
+      /* html5-qrcode overrides for dark mode */
+      #reader { background: #000; border-radius: 8px; overflow: hidden; border: none !important; width: 100%; }
+      #reader video { width: 100% !important; height: auto !important; border-radius: 8px; }
     </style>
   </head>
   <body>
@@ -103,7 +104,7 @@
       <div id="scanner-wrapper" class="hidden mb-3 p-3 border border-secondary rounded" style="background:#1a1d20;">
         <div id="reader" width="100%"></div>
         <div class="text-center mb-3 mt-2 text-white fw-bold">Point camera at barcode or QR code</div>
-        <button class="btn btn-outline-danger w-100" onclick="stopScanner()">Close Camera</button>
+       <button class="btn btn-danger w-100 mt-3" onclick="stopScanner()">Stop Scanner</button>
       </div>
 
       <div id="view-lookup">
@@ -358,24 +359,60 @@ async function apiCall(actionName, dataObj) {
       function clearField(id) { var el = document.getElementById(id); if(el) { el.value = ""; el.focus(); } }
       function toggleCollapse(id) { var el = document.getElementById(id); if(el.classList.contains('hidden')) el.classList.remove('hidden'); else el.classList.add('hidden'); }
 
-function startScan(inputId) {
+let scanAudioCtx = null;
+
+      function unlockAudio() {
+         try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            if (!scanAudioCtx) scanAudioCtx = new AudioCtx();
+            if (scanAudioCtx.state === 'suspended') scanAudioCtx.resume();
+         } catch (e) {}
+      }
+
+      function playScanFeedback() {
+         // 1. Vibration (works on Android)
+         if (navigator.vibrate) {
+            try { navigator.vibrate(120); } catch (e) {}
+         }
+
+         // 2. Crisp scanner beep (works on iOS & Android)
+         try {
+            if (!scanAudioCtx) unlockAudio();
+            if (!scanAudioCtx) return;
+            if (scanAudioCtx.state === 'suspended') scanAudioCtx.resume();
+
+            const osc = scanAudioCtx.createOscillator();
+            const gain = scanAudioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1200, scanAudioCtx.currentTime);
+            gain.gain.setValueAtTime(0.25, scanAudioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, scanAudioCtx.currentTime + 0.12);
+
+            osc.connect(gain);
+            gain.connect(scanAudioCtx.destination);
+            osc.start();
+            osc.stop(scanAudioCtx.currentTime + 0.12);
+         } catch (e) {}
+      }
+
+      function startScan(inputId) {
+         unlockAudio(); // Unlocks sound on the user's tap
          activeInput = inputId;
          document.getElementById('scanner-wrapper').classList.remove('hidden');
          window.scrollTo({ top: 0, behavior: 'smooth' });
 
          if (!html5QrCode) {
-            html5QrCode = new Html5Qrcode("reader", {
-               experimentalFeatures: { useBarCodeDetectorIfSupported: true }
-            });
+            html5QrCode = new Html5Qrcode("reader");
          }
 
          const config = {
-            fps: 15,
-            qrbox: function(vw, vh) {
-               let size = Math.floor(Math.min(vw, vh) * 0.75);
-               return { width: size, height: size };
-            }
+            fps: 10,
+            aspectRatio: 1.0
          };
+
+         // If already scanning, don't start a second camera stream
+         if (html5QrCode.isScanning) return;
 
          html5QrCode.start(
             { facingMode: "environment" },
@@ -388,7 +425,22 @@ function startScan(inputId) {
          });
       }
 
+      function stopScanner() {
+         // Always hide the UI immediately so the button never gets stuck
+         const wrapper = document.getElementById('scanner-wrapper');
+         if (wrapper) wrapper.classList.add('hidden');
+
+         if (html5QrCode) {
+            try {
+               html5QrCode.stop().then(() => {
+                  html5QrCode.clear();
+               }).catch(() => {});
+            } catch (e) {}
+         }
+      }
+
       function onScan(txt) {
+         playScanFeedback();
          stopScanner();
          const cleanTxt = String(txt).trim();
          if (activeInput) {
@@ -404,7 +456,6 @@ function startScan(inputId) {
             }
          }
       }
-
       function runSingleSearch() {
          var id = document.getElementById('inp-lookup').value; if(!id) return;
          document.getElementById('res-single').classList.add('hidden'); showLoading();
