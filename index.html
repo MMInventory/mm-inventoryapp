@@ -102,7 +102,7 @@
 
       <div id="scanner-wrapper" class="hidden mb-3 p-3 border border-secondary rounded" style="background:#1a1d20;">
         <div id="reader" width="100%"></div>
-        <div class="text-center mb-3 mt-2 text-white fw-bold">Point camera at barcode</div>
+        <div class="text-center mb-3 mt-2 text-white fw-bold">Point camera at barcode or QR code</div>
         <button class="btn btn-outline-danger w-100" onclick="stopScanner()">Close Camera</button>
       </div>
 
@@ -358,15 +358,52 @@ async function apiCall(actionName, dataObj) {
       function clearField(id) { var el = document.getElementById(id); if(el) { el.value = ""; el.focus(); } }
       function toggleCollapse(id) { var el = document.getElementById(id); if(el.classList.contains('hidden')) el.classList.remove('hidden'); else el.classList.add('hidden'); }
 
-      function startScan(inputId) {
-         activeInput = inputId; document.getElementById('scanner-wrapper').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' });
-         if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
-         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: function(vw, vh) { return { width: vw * 0.95, height: vh * 0.5 }; } }, function(text) { onScan(text); }, function(err) {}).catch(function(err) { showModal("Camera Error", "Could not start camera.", "red"); document.getElementById('scanner-wrapper').classList.add('hidden'); });
+function startScan(inputId) {
+         activeInput = inputId;
+         document.getElementById('scanner-wrapper').classList.remove('hidden');
+         window.scrollTo({ top: 0, behavior: 'smooth' });
+
+         if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("reader", {
+               experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+            });
+         }
+
+         const config = {
+            fps: 15,
+            qrbox: function(vw, vh) {
+               let size = Math.floor(Math.min(vw, vh) * 0.75);
+               return { width: size, height: size };
+            }
+         };
+
+         html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            function(text) { onScan(text); },
+            function(err) {}
+         ).catch(function(err) {
+            showModal("Camera Error", "Could not start camera: " + err, "red");
+            document.getElementById('scanner-wrapper').classList.add('hidden');
+         });
       }
 
-      function stopScanner() { if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().then(() => { document.getElementById('scanner-wrapper').classList.add('hidden'); }).catch(err => { document.getElementById('scanner-wrapper').classList.add('hidden'); }); } else { document.getElementById('scanner-wrapper').classList.add('hidden'); } }
-
-      function onScan(txt) { stopScanner(); if(activeInput) { var el = document.getElementById(activeInput); if(el) el.value = txt; if(activeInput === 'inp-lookup') runSingleSearch(); if(activeInput === 'inp-contract') runContractSearch(); if(activeInput === 'qm-item') document.getElementById('qm-loc').focus(); if(activeInput === 'bm-item') addBatch(); if(activeInput.startsWith('cont-loc-')) { var idx = activeInput.split('-')[2]; updCont(idx, 'location', txt); } } }
+      function onScan(txt) {
+         stopScanner();
+         const cleanTxt = String(txt).trim();
+         if (activeInput) {
+            var el = document.getElementById(activeInput);
+            if (el) el.value = cleanTxt;
+            if (activeInput === 'inp-lookup') runSingleSearch();
+            if (activeInput === 'inp-contract') runContractSearch();
+            if (activeInput === 'qm-item') document.getElementById('qm-loc').focus();
+            if (activeInput === 'bm-item') addBatch();
+            if (activeInput.startsWith('cont-loc-')) {
+               var idx = activeInput.split('-')[2];
+               updCont(idx, 'location', cleanTxt);
+            }
+         }
+      }
 
       function runSingleSearch() {
          var id = document.getElementById('inp-lookup').value; if(!id) return;
